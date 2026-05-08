@@ -3,7 +3,7 @@
   Static Telegram Mini App prototype: no backend, no payments, data saved in localStorage.
 */
 
-const APP_VERSION = "0.6-author-ecosystem-source";
+const APP_VERSION = "0.7-photo-cards";
 const AI_API_URL = "/api/assistant"; // позже подключим Vercel Serverless Function + OpenAI API
 
 const medicalDisclaimer = "Материалы внутри приложения — образовательный маршрут и чек-листы. Они не заменяют врача, хирурга или реабилитолога. Ограничения после операции зависят от доступа, импланта, сопутствующих диагнозов и индивидуальных назначений.";
@@ -1283,7 +1283,7 @@ function renderExerciseDetail() {
     ${backRow("К упражнениям", "exercises")}
     ${topScreen("Упражнения", ex.title)}
     <section class="card exercise-hero">
-      <div class="exercise-illustration"></div>
+      <div class="exercise-illustration"><img class="exercise-photo" src="assets/exercises/${h(ex.id)}.png" alt="${h(ex.title)}" loading="lazy"></div>
       <div class="exercise-tags">
         <span class="badge rose">⏱ ${h(ex.duration)}</span>
         <span class="badge olive">♡ ${h(ex.tags[0])}</span>
