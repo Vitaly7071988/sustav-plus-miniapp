@@ -3,7 +3,7 @@
   Static Telegram Mini App prototype: no backend, no payments, data saved in localStorage.
 */
 
-const APP_VERSION = "1.2-analytics";
+const APP_VERSION = "1.3-recovery-concierge-test";
 const AI_API_URL = "/api/assistant"; // позже подключим Vercel Serverless Function + OpenAI API
 
 const medicalDisclaimer = "Материалы внутри приложения — образовательный маршрут и чек-листы. Они не заменяют врача, хирурга или реабилитолога. Ограничения после операции зависят от доступа, импланта, сопутствующих диагнозов и индивидуальных назначений.";
@@ -849,6 +849,64 @@ const projectAuthor = {
     { title: "YouTube Виталий Клочихин", desc: "интервью с врачами, разборы, упражнения и длинные видео", url: "https://youtube.com/@vitaliyklochikhin", icon: "▶️" },
     { title: "Сайт newsustav.ru", desc: "витрина проекта и маршрут сопровождения", url: "https://www.newsustav.ru", icon: "🌐" },
     { title: "Путь без боли", desc: "описание навигаторства и сопровождения", url: "https://telegra.ph/Put-bez-boli-01-31", icon: "🛤️" }
+  ]
+};
+
+
+const recoveryConcierge = {
+  title: "Дом готов к операции",
+  subtitle: "комплект + навигация после эндопротезирования",
+  intro: "Тестовый раздел нового сервиса: помощь в подготовке дома, покупок, аренды и первых 14–30 дней после операции. Не медицинская услуга, а спокойная бытовая и организационная навигация.",
+  hero: {
+    title: "Не просто костыли. Готовое спокойствие.",
+    text: "Идея сервиса — помочь человеку понять, что купить, что арендовать, кого вызвать и как подготовить квартиру к возвращению после операции.",
+    price: "Тестовый формат: от 4 900 ₽"
+  },
+  packages: [
+    {
+      title: "Бесплатный чек-лист",
+      price: "0 ₽",
+      desc: "База для всех: что проверить дома до операции и после выписки.",
+      items: ["список вещей домой", "красные флаги", "что обсудить с врачом", "как не покупать лишнее"]
+    },
+    {
+      title: "Индивидуальный список",
+      price: "4 900–7 900 ₽",
+      desc: "Персональный разбор под сустав, квартиру, сроки операции и уровень помощи дома.",
+      items: ["что купить", "что арендовать", "что подготовить дома", "какие вопросы задать врачу"]
+    },
+    {
+      title: "Дом готов к операции",
+      price: "15 000–25 000 ₽",
+      desc: "Помощь в сборке маршрута: список, партнёры, доставка/аренда, инструкции и первые дни дома.",
+      items: ["план на 14 дней", "контакты партнёров", "подготовка квартиры", "созвон и сопровождение"]
+    }
+  ],
+  checklist: [
+    "локтевые костыли / ходунки по назначению",
+    "насадка на унитаз или высокий стул",
+    "стул для душа / противоскользящий коврик",
+    "подушка между ног",
+    "холодовые пакеты через ткань",
+    "длинная ложка для обуви",
+    "захват/граббер",
+    "органайзер лекарств",
+    "безопасный маршрут по квартире",
+    "вода, телефон и нужные вещи на уровне рук"
+  ],
+  partners: [
+    "прокат медтехники",
+    "ортопедический магазин",
+    "реабилитолог на дом",
+    "служба ухода / сиделка",
+    "доставка питания / белкового рациона",
+    "нутрициолог проекта"
+  ],
+  contacts: [
+    { title: "Написать Виталию", desc: "обсудить тестовый разбор и подготовку дома", url: "https://t.me/newsustav", icon: "✈️" },
+    { title: "Telegram-канал @newsustav", desc: "основной канал проекта", url: "https://t.me/newsustav", icon: "📌" },
+    { title: "Сайт newsustav.ru", desc: "витрина проекта и маршрута сопровождения", url: "https://www.newsustav.ru", icon: "🌐" },
+    { title: "YouTube Виталий Клочихин", desc: "интервью, разборы и видео по восстановлению", url: "https://youtube.com/@vitaliyklochikhin", icon: "▶️" }
   ]
 };
 
@@ -2040,6 +2098,84 @@ function renderWeeklyProgress() {
 }
 
 
+
+function renderConcierge() {
+  return `
+    ${backRow("На главную", "home")}
+    ${topScreen(recoveryConcierge.title, recoveryConcierge.subtitle)}
+
+    <section class="card concierge-hero">
+      <div>
+        <span class="badge olive">тест спроса</span>
+        <h2>${h(recoveryConcierge.hero.title)}</h2>
+        <p>${h(recoveryConcierge.hero.text)}</p>
+        <div class="price-pill">${h(recoveryConcierge.hero.price)}</div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="notice"><strong>Важно:</strong> это не клиника и не медицинское назначение. Это навигация по быту, подготовке дома, вопросам врачу, покупке/аренде и спокойному прохождению первых этапов.</div>
+    </section>
+
+    <section class="section">
+      <div class="section-head"><h3>Пакеты для теста</h3><span class="badge rose">MVP</span></div>
+      <div class="package-grid">
+        ${recoveryConcierge.packages.map((p, idx) => `
+          <article class="card package-card">
+            <div class="package-top">
+              <span class="package-num">${idx + 1}</span>
+              <div>
+                <h3>${h(p.title)}</h3>
+                <strong>${h(p.price)}</strong>
+              </div>
+            </div>
+            <p>${h(p.desc)}</p>
+            <ul class="checklist mini">
+              ${p.items.map(item => `<li>${h(item)}</li>`).join("")}
+            </ul>
+          </article>
+        `).join("")}
+      </div>
+    </section>
+
+    <section class="section card">
+      <div class="section-head"><h3>Что может входить в комплект</h3><span class="badge olive">${recoveryConcierge.checklist.length} пунктов</span></div>
+      <ul class="checklist">
+        ${recoveryConcierge.checklist.map(item => `<li>${h(item)}</li>`).join("")}
+      </ul>
+    </section>
+
+    <section class="section card">
+      <div class="section-head"><h3>Партнёры, которых можно подключить</h3><span class="badge gray">без своего склада</span></div>
+      <div class="partner-tags">
+        ${recoveryConcierge.partners.map(p => `<span>${h(p)}</span>`).join("")}
+      </div>
+    </section>
+
+    <section class="section card action-card">
+      <h3>Кому это может быть полезно?</h3>
+      <p>Если операция скоро, дома непонятно что подготовить, а в голове миллион вопросов — можно начать с индивидуального списка и спокойного маршрута.</p>
+      <div class="cta-row">
+        <a class="primary-btn" href="https://t.me/newsustav" target="_blank" rel="noopener" data-track-link="concierge_contact_vitaly">Написать Виталию</a>
+        <button class="secondary-btn" data-nav="preop">Раздел “Готовлюсь к операции” ›</button>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head"><h3>Контакты проекта</h3><span class="badge olive">Сустав+</span></div>
+      <div class="list">
+        ${recoveryConcierge.contacts.map(link => `
+          <a class="list-item" href="${h(link.url)}" target="_blank" rel="noopener" data-track-link="concierge_${h(link.title)}">
+            <span class="icon olive">${h(link.icon)}</span>
+            <span style="min-width:0; flex:1"><strong>${h(link.title)}</strong><div class="meta">${h(link.desc)}</div></span>
+            <span class="chev">›</span>
+          </a>
+        `).join("")}
+      </div>
+    </section>
+  `;
+}
+
 function renderPreop() {
   return `
     ${backRow("На главную", "home")}
@@ -2123,6 +2259,7 @@ function render() {
   if (state.screen === "weekly") body = renderWeeklyProgress();
   if (state.screen === "memos") body = renderMemos();
   if (state.screen === "preop") body = renderPreop();
+  if (state.screen === "concierge") body = renderConcierge();
   app.innerHTML = body + bottomNav();
   bindEvents(app);
   trackScreenView();

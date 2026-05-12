@@ -799,3 +799,90 @@ a.list-item:visited, a.as-link:visited { color: inherit; }
   color: var(--muted);
   line-height: 1.45;
 }
+
+
+/* v1.3 Recovery Concierge test section */
+.concierge-hero {
+  padding: 22px;
+  min-height: 210px;
+  background:
+    radial-gradient(circle at 86% 20%, rgba(154,160,106,.18), transparent 34%),
+    linear-gradient(135deg, rgba(248,226,219,.88), rgba(255,252,247,.92));
+}
+.concierge-hero h2 {
+  margin: 14px 0 8px;
+  font-size: 30px;
+  line-height: 1.05;
+  color: var(--rose);
+  letter-spacing: -.03em;
+}
+.concierge-hero p {
+  margin: 0;
+  color: var(--text);
+  line-height: 1.45;
+}
+.price-pill {
+  margin-top: 16px;
+  display: inline-flex;
+  padding: 10px 14px;
+  border-radius: 999px;
+  background: rgba(255,252,247,.82);
+  color: var(--text);
+  font-weight: 900;
+  border: 1px solid rgba(185,111,102,.18);
+}
+.package-grid {
+  display: grid;
+  gap: 12px;
+}
+.package-card {
+  padding: 16px;
+}
+.package-top {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+.package-num {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--rose);
+  color: #fff;
+  font-weight: 900;
+}
+.package-card h3 {
+  margin: 0;
+  font-size: 18px;
+  line-height: 1.2;
+}
+.package-card strong {
+  display: block;
+  margin-top: 4px;
+  color: var(--olive);
+  font-size: 15px;
+}
+.package-card p {
+  margin: 12px 0;
+  color: var(--muted);
+  line-height: 1.42;
+}
+.checklist.mini li {
+  font-size: 13px;
+}
+.partner-tags {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.partner-tags span {
+  padding: 9px 11px;
+  border-radius: 999px;
+  background: rgba(154,160,106,.12);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 700;
+  border: 1px solid rgba(154,160,106,.18);
+}
