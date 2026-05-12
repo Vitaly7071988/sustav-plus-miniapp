@@ -1,3 +1,11 @@
+## Новое в v1.2 — аналитика запуска
+
+- добавлен Vercel Web Analytics script для посетителей и просмотров;
+- добавлен endpoint `/api/track` для событий внутри приложения;
+- приложение теперь отправляет события: вход, экран, клики, маршруты, упражнения, трекер, вода, AI, внешние ссылки;
+- добавлена документация `docs/ANALYTICS_SETUP.md` и `docs/GOOGLE_SHEETS_ANALYTICS.md`;
+- можно подключить Google Sheets через `ANALYTICS_WEBHOOK_URL` или Telegram-уведомления через `TELEGRAM_BOT_TOKEN` + `ANALYTICS_CHAT_ID`.
+
 ## Новое в v1.1
 
 - добавлен раздел **«Готовлюсь к операции»**;

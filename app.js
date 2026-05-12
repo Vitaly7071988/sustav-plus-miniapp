@@ -3,7 +3,7 @@
   Static Telegram Mini App prototype: no backend, no payments, data saved in localStorage.
 */
 
-const APP_VERSION = "1.1-preop-section";
+const APP_VERSION = "1.2-analytics";
 const AI_API_URL = "/api/assistant"; // позже подключим Vercel Serverless Function + OpenAI API
 
 const medicalDisclaimer = "Материалы внутри приложения — образовательный маршрут и чек-листы. Они не заменяют врача, хирурга или реабилитолога. Ограничения после операции зависят от доступа, импланта, сопутствующих диагнозов и индивидуальных назначений.";
@@ -1055,6 +1055,120 @@ const profile = store.get("sustav_profile", {
 const routineProgress = store.get("sustav_routines", {});
 const waterProgress = store.get("sustav_water", {});
 
+// --- Сустав+ Analytics v1.2 ---
+// Что отслеживаем:
+// app_open, screen_view, nav_click, program_open, day_open, exercise_open,
+// task_toggle, exercise_toggle, routine_toggle, water_change, tracker_save,
+// assistant_ask, assistant_sample, profile_save, team_save, question_toggle,
+// external_click.
+// Отправка идёт в Vercel Web Analytics (pageviews) + /api/track для Google Sheets/Telegram.
+const ANALYTICS_API_URL = "/api/track";
+
+function getOrCreateSessionId() {
+  let id = store.get("sustav_analytics_session", null);
+  if (!id) {
+    id = `s_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+    store.set("sustav_analytics_session", id);
+  }
+  return id;
+}
+
+function getOrCreateVisitorId() {
+  let id = store.get("sustav_analytics_visitor", null);
+  if (!id) {
+    id = `v_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+    store.set("sustav_analytics_visitor", id);
+  }
+  return id;
+}
+
+function getTelegramContext() {
+  const tg = window.Telegram?.WebApp;
+  const user = tg?.initDataUnsafe?.user || null;
+  return {
+    platform: tg ? "telegram" : "browser",
+    tgUserId: user?.id ? String(user.id) : null,
+    tgUsername: user?.username || null,
+    tgFirstName: user?.first_name || null,
+    startParam: tg?.initDataUnsafe?.start_param || null,
+    colorScheme: tg?.colorScheme || null
+  };
+}
+
+function buildAnalyticsPayload(event, data = {}) {
+  const tgCtx = getTelegramContext();
+  return {
+    event,
+    data,
+    appVersion: APP_VERSION,
+    source: sourceRef(),
+    sourceLabel: sourceLabel(sourceRef()),
+    screen: state.screen,
+    program: state.program,
+    day: state.day,
+    exerciseId: state.exerciseId,
+    sessionId: getOrCreateSessionId(),
+    visitorId: tgCtx.tgUserId || getOrCreateVisitorId(),
+    telegram: tgCtx,
+    url: location.href,
+    path: location.pathname,
+    userAgent: navigator.userAgent,
+    language: navigator.language,
+    time: new Date().toISOString()
+  };
+}
+
+function trackEvent(event, data = {}) {
+  const payload = buildAnalyticsPayload(event, data);
+
+  // Vercel Analytics: pageviews работают на всех планах; custom events могут зависеть от тарифа.
+  try {
+    if (window.va) window.va("event", event, data);
+  } catch (_) {}
+
+  // Свой endpoint: можно пересылать события в Google Sheets / Telegram / Make.
+  try {
+    const body = JSON.stringify(payload);
+    if (navigator.sendBeacon) {
+      const blob = new Blob([body], { type: "application/json" });
+      navigator.sendBeacon(ANALYTICS_API_URL, blob);
+    } else {
+      fetch(ANALYTICS_API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body,
+        keepalive: true
+      }).catch(() => {});
+    }
+  } catch (_) {}
+
+  // Локальный след для отладки на текущем устройстве.
+  try {
+    const local = store.get("sustav_analytics_local", []);
+    local.push(payload);
+    store.set("sustav_analytics_local", local.slice(-80));
+  } catch (_) {}
+}
+
+let lastTrackedScreen = null;
+function trackScreenView() {
+  if (state.screen === lastTrackedScreen) return;
+  lastTrackedScreen = state.screen;
+  trackEvent("screen_view", { screen: state.screen });
+}
+
+function markAppOpened() {
+  const key = `sustav_app_open_${todayKey()}`;
+  const alreadyOpenedToday = store.get(key, false);
+  if (!alreadyOpenedToday) {
+    store.set(key, true);
+    trackEvent("app_open", { firstOpenToday: true });
+  } else {
+    trackEvent("app_open", { firstOpenToday: false });
+  }
+}
+
+
 
 function initTelegram() {
   const tg = window.Telegram?.WebApp;
@@ -2011,19 +2125,21 @@ function render() {
   if (state.screen === "preop") body = renderPreop();
   app.innerHTML = body + bottomNav();
   bindEvents(app);
+  trackScreenView();
 }
 
 function bindEvents(root) {
   root.querySelectorAll("[data-nav]").forEach(btn => {
-    btn.addEventListener("click", () => setScreen(btn.dataset.nav));
+    btn.addEventListener("click", () => { trackEvent("nav_click", { from: state.screen, to: btn.dataset.nav, text: btn.textContent.trim().slice(0, 60) }); setScreen(btn.dataset.nav); });
   });
   root.querySelectorAll("[data-action]").forEach(btn => {
-    btn.addEventListener("click", () => setScreen(btn.dataset.action));
+    btn.addEventListener("click", () => { trackEvent("nav_click", { from: state.screen, to: btn.dataset.action, action: "back_or_action", text: btn.textContent.trim().slice(0, 60) }); setScreen(btn.dataset.action); });
   });
   root.querySelectorAll("[data-open-program]").forEach(btn => {
     btn.addEventListener("click", () => {
       state.program = Number(btn.dataset.openProgram);
       state.day = Math.min(state.day, state.program);
+      trackEvent("program_open", { program: state.program, sourceButton: "open_program" });
       setScreen("route");
     });
   });
@@ -2031,6 +2147,7 @@ function bindEvents(root) {
     btn.addEventListener("click", () => {
       state.program = Number(btn.dataset.setProgram);
       state.day = Math.min(state.day, state.program);
+      trackEvent("program_open", { program: state.program, sourceButton: "set_program" });
       render();
     });
   });
@@ -2038,17 +2155,18 @@ function bindEvents(root) {
     btn.addEventListener("click", () => {
       state.program = Number(btn.dataset.program || state.program);
       state.day = Number(btn.dataset.openDay);
+      trackEvent("day_open", { program: state.program, day: state.day });
       setScreen("route");
     });
   });
   root.querySelectorAll("[data-toggle-task]").forEach(btn => {
-    btn.addEventListener("click", () => toggleComplete(btn.dataset.toggleTask));
+    btn.addEventListener("click", () => { trackEvent("task_toggle", { key: btn.dataset.toggleTask, beforeDone: !!completed[btn.dataset.toggleTask] }); toggleComplete(btn.dataset.toggleTask); });
   });
   root.querySelectorAll("[data-open-exercise]").forEach(btn => {
-    btn.addEventListener("click", () => setScreen("exercise", { exerciseId: btn.dataset.openExercise }));
+    btn.addEventListener("click", () => { trackEvent("exercise_open", { exerciseId: btn.dataset.openExercise }); setScreen("exercise", { exerciseId: btn.dataset.openExercise }); });
   });
   root.querySelectorAll("[data-toggle-exercise]").forEach(btn => {
-    btn.addEventListener("click", () => toggleComplete(btn.dataset.toggleExercise));
+    btn.addEventListener("click", () => { trackEvent("exercise_toggle", { key: btn.dataset.toggleExercise, beforeDone: !!completed[btn.dataset.toggleExercise] }); toggleComplete(btn.dataset.toggleExercise); });
   });
   const range = root.querySelector("[data-range='pain']");
   if (range) {
@@ -2064,6 +2182,7 @@ function bindEvents(root) {
       if (btn.dataset.choice === "mood") state.trackerMood = btn.dataset.value;
       if (btn.dataset.choice === "sleep") state.trackerSleep = btn.dataset.value;
       if (btn.dataset.choice === "walk") state.trackerWalk = btn.dataset.value;
+      trackEvent("tracker_choice", { choice: btn.dataset.choice, value: btn.dataset.value });
       render();
     });
   });
@@ -2083,15 +2202,16 @@ function bindEvents(root) {
       });
       store.set("sustav_tracker", tracker);
       state.lastSaved = new Date().toLocaleString("ru-RU", { dateStyle: "short", timeStyle: "short" });
+      trackEvent("tracker_save", { pain: state.trackerPain, swelling: state.trackerSwelling, mood: state.trackerMood, sleep: state.trackerSleep, walk: state.trackerWalk, hasNote: !!state.trackerNote.trim() });
       state.trackerNote = "";
       render();
     });
   }
   root.querySelectorAll("[data-toggle-routine]").forEach(btn => {
-    btn.addEventListener("click", () => toggleRoutine(btn.dataset.toggleRoutine));
+    btn.addEventListener("click", () => { trackEvent("routine_toggle", { routine: btn.dataset.toggleRoutine }); toggleRoutine(btn.dataset.toggleRoutine); });
   });
   root.querySelectorAll("[data-water]").forEach(btn => {
-    btn.addEventListener("click", () => changeWater(Number(btn.dataset.water)));
+    btn.addEventListener("click", () => { trackEvent("water_change", { delta: Number(btn.dataset.water), beforeMl: waterToday() }); changeWater(Number(btn.dataset.water)); });
   });
   const assistantQuestion = root.querySelector("[data-assistant-question]");
   if (assistantQuestion) assistantQuestion.addEventListener("input", (e) => { state.assistantQuestion = e.target.value; });
@@ -2099,6 +2219,7 @@ function bindEvents(root) {
   if (askAssistant) {
     askAssistant.addEventListener("click", async () => {
       const question = state.assistantQuestion || "";
+      trackEvent("assistant_ask", { length: question.length, questionPreview: question.slice(0, 80) });
       state.assistantAnswer = "Готовлю подсказку...";
       render();
       state.assistantAnswer = await getAssistantAnswer(question);
@@ -2108,9 +2229,17 @@ function bindEvents(root) {
   root.querySelectorAll("[data-sample-question]").forEach(btn => {
     btn.addEventListener("click", () => {
       const item = assistantSamples[Number(btn.dataset.sampleQuestion)];
+      trackEvent("assistant_sample", { index: Number(btn.dataset.sampleQuestion), question: item.q.slice(0, 80) });
       state.assistantQuestion = item.q;
       state.assistantAnswer = item.a;
       render();
+    });
+  });
+
+
+  root.querySelectorAll("a.external-link").forEach(link => {
+    link.addEventListener("click", () => {
+      trackEvent("external_click", { href: link.href, text: link.textContent.trim().slice(0, 80) });
     });
   });
 
@@ -2125,6 +2254,7 @@ function bindEvents(root) {
     if (profile.stage && !String(profile.stage).includes("Неделя")) profile.stage = profile.stage;
     profile.operation = profile.joint || profile.operation;
     store.set("sustav_profile", profile);
+    trackEvent("profile_save", { joint: profile.joint, stage: profile.stage, daysAfter: profile.daysAfter, support: profile.support });
     setScreen("route");
   });
   root.querySelectorAll("[data-team-index]").forEach(input => {
@@ -2137,6 +2267,7 @@ function bindEvents(root) {
   const saveTeam = root.querySelector("[data-save-team]");
   if (saveTeam) saveTeam.addEventListener("click", () => {
     store.set("sustav_profile", profile);
+    trackEvent("team_save", { filled: (profile.team || []).filter(x => x.value && x.value !== "не указан").length });
     render();
   });
   root.querySelectorAll("[data-toggle-question]").forEach(btn => {
@@ -2144,6 +2275,7 @@ function bindEvents(root) {
       const saved = store.get("sustav_questions_done", {});
       saved[btn.dataset.toggleQuestion] = !saved[btn.dataset.toggleQuestion];
       store.set("sustav_questions_done", saved);
+      trackEvent("question_toggle", { key: btn.dataset.toggleQuestion, done: !!saved[btn.dataset.toggleQuestion] });
       render();
     });
   });
@@ -2151,4 +2283,5 @@ function bindEvents(root) {
 }
 
 initTelegram();
+markAppOpened();
 render();
