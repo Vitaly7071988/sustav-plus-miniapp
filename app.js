@@ -3,7 +3,7 @@
   Static Telegram Mini App prototype: no backend, no payments, data saved in localStorage.
 */
 
-const APP_VERSION = "0.7-photo-cards";
+const APP_VERSION = "1.1-preop-section";
 const AI_API_URL = "/api/assistant"; // позже подключим Vercel Serverless Function + OpenAI API
 
 const medicalDisclaimer = "Материалы внутри приложения — образовательный маршрут и чек-листы. Они не заменяют врача, хирурга или реабилитолога. Ограничения после операции зависят от доступа, импланта, сопутствующих диагнозов и индивидуальных назначений.";
@@ -708,6 +708,92 @@ const exercises = [
   }
 ];
 
+
+const preopChecklist = {
+  title: "Готовлюсь к операции",
+  subtitle: "что проверить до госпитализации",
+  intro: "Этот раздел помогает спокойно подготовиться к эндопротезированию: собрать вопросы врачу, подготовить дом, вещи и первые дни после выписки.",
+  sections: [
+    {
+      title: "Вопросы хирургу",
+      icon: "🩺",
+      items: [
+        "Какой доступ планируется и какие ограничения будут после операции?",
+        "Когда можно вставать, ходить, пользоваться лестницей?",
+        "Какая опора нужна: ходунки, два локтевых костыля, трость?",
+        "Какие симптомы после выписки считаются тревожными?",
+        "Когда контрольный осмотр и перевязка?"
+      ]
+    },
+    {
+      title: "Вопросы анестезиологу",
+      icon: "💉",
+      items: [
+        "Какой вид анестезии планируется?",
+        "Что делать с текущими препаратами до операции?",
+        "Когда нельзя есть и пить перед госпитализацией?",
+        "Какие анализы/заключения взять с собой?",
+        "Как будет контролироваться боль после операции?"
+      ]
+    },
+    {
+      title: "Что взять в больницу",
+      icon: "🎒",
+      items: [
+        "Документы, обследования, выписки, список лекарств.",
+        "Удобную обувь с нескользящей подошвой.",
+        "Средства гигиены, зарядку, воду по правилам клиники.",
+        "Одежду, которую легко надевать без глубоких наклонов.",
+        "Компрессионный трикотаж — если назначен врачом."
+      ]
+    },
+    {
+      title: "Подготовить дом",
+      icon: "🏠",
+      items: [
+        "Убрать коврики, провода и скользкие предметы.",
+        "Подготовить высокий устойчивый стул.",
+        "Разместить нужные вещи на уровне рук.",
+        "Продумать маршрут: кровать — туалет — кухня — место отдыха.",
+        "Поставить рядом воду, телефон, зарядку, лекарства по назначению."
+      ]
+    },
+    {
+      title: "Первые дни после выписки",
+      icon: "🛏️",
+      items: [
+        "Заранее договориться, кто поможет дома.",
+        "Не планировать геройство и дальние прогулки.",
+        "Понимать, как пользоваться двумя локтевыми костылями.",
+        "Знать, кому звонить при тревожных симптомах.",
+        "Записывать боль, отёк, сон и реакцию на нагрузку."
+      ]
+    },
+    {
+      title: "Питание и восстановление",
+      icon: "🥗",
+      items: [
+        "Заранее продумать простые белковые приёмы пищи.",
+        "Подготовить воду и мягкий режим питья.",
+        "Обсудить с врачом риск запоров и что делать после операции.",
+        "Не садиться на жёсткие диеты перед операцией.",
+        "При необходимости обратиться к Виктории Клочихиной по питанию."
+      ]
+    },
+    {
+      title: "Спокойствие перед операцией",
+      icon: "🫶",
+      items: [
+        "Тревога перед операцией — нормальна.",
+        "Выпишите вопросы врачу заранее, чтобы не вспоминать в панике.",
+        "Смотрите на операцию как на этап возвращения к движению.",
+        "Дышите медленно: длинный выдох помогает снизить напряжение.",
+        "Не сравнивайте свой путь с чужими историями."
+      ]
+    }
+  ]
+};
+
 const memos = [
   {
     title: "Красные флаги",
@@ -1147,6 +1233,7 @@ function renderHome() {
     <section class="section">
       <div class="section-head"><h3>Выберите путь</h3></div>
       <div class="path-grid">
+        <button class="path-card highlight" data-nav="preop"><span class="icon rose">🧳</span><span><strong>Готовлюсь к операции</strong><small>чек-листы и вопросы врачу</small></span><span class="chev">›</span></button>
         <button class="path-card" data-open-program="14"><span class="icon">14</span><span><strong>Первые 14 дней</strong><small>короткий старт</small></span><span class="chev">›</span></button>
         <button class="path-card" data-open-program="30"><span class="icon olive">30</span><span><strong>Первые 30 дней</strong><small>расширенный путь</small></span><span class="chev">›</span></button>
         <button class="path-card" data-nav="exercises"><span class="icon olive">♿</span><span><strong>Упражнения</strong><small>библиотека</small></span><span class="chev">›</span></button>
@@ -1838,6 +1925,46 @@ function renderWeeklyProgress() {
   `;
 }
 
+
+function renderPreop() {
+  return `
+    ${backRow("На главную", "home")}
+    ${topScreen(preopChecklist.title, preopChecklist.subtitle)}
+    <section class="section" style="margin-top:0">
+      <div class="notice olive"><strong>Зачем этот раздел:</strong> ${h(preopChecklist.intro)}</div>
+    </section>
+
+    <section class="section">
+      <div class="section-head"><h3>Чек-лист подготовки</h3><span class="badge olive">до операции</span></div>
+      <div class="preop-grid">
+        ${preopChecklist.sections.map((section, idx) => `
+          <article class="card preop-card">
+            <div class="preop-title">
+              <span class="icon ${idx % 2 ? "olive" : "rose"}">${section.icon}</span>
+              <div>
+                <h3>${h(section.title)}</h3>
+                <small>${section.items.length} пунктов</small>
+              </div>
+            </div>
+            <ul class="checklist">
+              ${section.items.map(item => `<li>${h(item)}</li>`).join("")}
+            </ul>
+          </article>
+        `).join("")}
+      </div>
+    </section>
+
+    <section class="section card action-card">
+      <h3>Что сделать сегодня</h3>
+      <p>Выберите один блок и пройдитесь по пунктам. Не нужно закрывать всё за вечер: подготовка работает лучше, когда она спокойная и по шагам.</p>
+      <div class="cta-row">
+        <button class="primary-btn" data-nav="doctor-questions">Список вопросов врачу</button>
+        <button class="secondary-btn" data-nav="redflags">Красные флаги ›</button>
+      </div>
+    </section>
+  `;
+}
+
 function renderMemos() {
   return `
     ${topScreen("Памятки", "правила безопасности")}
@@ -1881,6 +2008,7 @@ function render() {
   if (state.screen === "intro") body = renderIntro();
   if (state.screen === "weekly") body = renderWeeklyProgress();
   if (state.screen === "memos") body = renderMemos();
+  if (state.screen === "preop") body = renderPreop();
   app.innerHTML = body + bottomNav();
   bindEvents(app);
 }

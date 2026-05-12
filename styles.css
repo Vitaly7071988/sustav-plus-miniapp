@@ -725,3 +725,77 @@ a.list-item:visited, a.as-link:visited { color: inherit; }
   .nutrition-hero { display: block; }
   .nutrition-art { margin-top: 14px; width: 72px; height: 72px; font-size: 34px; }
 }
+
+
+/* v1.1 pre-op preparation section */
+.small-pill.strong {
+  background: linear-gradient(135deg, rgba(185,111,102,.14), rgba(154,160,106,.12));
+  border-color: rgba(185,111,102,.28);
+  color: var(--text);
+  font-weight: 800;
+}
+.path-card.highlight {
+  background: linear-gradient(135deg, rgba(248,226,219,.85), rgba(238,240,227,.8));
+  border-color: rgba(185,111,102,.22);
+}
+.preop-grid {
+  display: grid;
+  gap: 12px;
+}
+.preop-card {
+  padding: 16px;
+}
+.preop-title {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.preop-title h3 {
+  margin: 0;
+  font-size: 18px;
+  line-height: 1.2;
+}
+.preop-title small {
+  display: block;
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 12px;
+}
+.checklist {
+  display: grid;
+  gap: 9px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.checklist li {
+  position: relative;
+  padding-left: 28px;
+  color: var(--text);
+  line-height: 1.42;
+  font-size: 14px;
+}
+.checklist li::before {
+  content: "✓";
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 19px;
+  height: 19px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: rgba(154,160,106,.16);
+  color: var(--olive);
+  font-size: 12px;
+  font-weight: 900;
+}
+.action-card {
+  padding: 18px;
+}
+.action-card p {
+  margin: 8px 0 0;
+  color: var(--muted);
+  line-height: 1.45;
+}
