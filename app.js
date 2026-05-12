@@ -3,7 +3,7 @@
   Static Telegram Mini App prototype: no backend, no payments, data saved in localStorage.
 */
 
-const APP_VERSION = "1.3-recovery-concierge-test";
+const APP_VERSION = "1.3.1-recovery-concierge-fixed";
 const AI_API_URL = "/api/assistant"; // позже подключим Vercel Serverless Function + OpenAI API
 
 const medicalDisclaimer = "Материалы внутри приложения — образовательный маршрут и чек-листы. Они не заменяют врача, хирурга или реабилитолога. Ограничения после операции зависят от доступа, импланта, сопутствующих диагнозов и индивидуальных назначений.";
@@ -1399,6 +1399,7 @@ function renderHome() {
         <button class="quick-btn" data-nav="links">🔗 Контакты</button>
         <button class="quick-btn" data-nav="author">👤 Автор проекта</button>
         <button class="quick-btn" data-nav="questions">? Вопросы врачу</button>
+        <button class="quick-btn strong" data-nav="concierge">🏠 Дом готов</button>
       </div>
     </section>
 
@@ -1406,6 +1407,7 @@ function renderHome() {
       <div class="section-head"><h3>Выберите путь</h3></div>
       <div class="path-grid">
         <button class="path-card highlight" data-nav="preop"><span class="icon rose">🧳</span><span><strong>Готовлюсь к операции</strong><small>чек-листы и вопросы врачу</small></span><span class="chev">›</span></button>
+        <button class="path-card highlight concierge-entry" data-nav="concierge"><span class="icon olive">🏠</span><span><strong>Дом готов к операции</strong><small>комплект + навигация</small></span><span class="chev">›</span></button>
         <button class="path-card" data-open-program="14"><span class="icon">14</span><span><strong>Первые 14 дней</strong><small>короткий старт</small></span><span class="chev">›</span></button>
         <button class="path-card" data-open-program="30"><span class="icon olive">30</span><span><strong>Первые 30 дней</strong><small>расширенный путь</small></span><span class="chev">›</span></button>
         <button class="path-card" data-nav="exercises"><span class="icon olive">♿</span><span><strong>Упражнения</strong><small>библиотека</small></span><span class="chev">›</span></button>

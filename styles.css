@@ -886,3 +886,14 @@ a.list-item:visited, a.as-link:visited { color: inherit; }
   font-weight: 700;
   border: 1px solid rgba(154,160,106,.18);
 }
+
+/* v1.3.1 fixed visible concierge entry */
+.quick-btn.strong {
+  background: linear-gradient(135deg, rgba(248,226,219,.9), rgba(238,240,227,.82));
+  border-color: rgba(185,111,102,.28);
+  font-weight: 900;
+}
+.path-card.concierge-entry {
+  background: linear-gradient(135deg, rgba(238,240,227,.92), rgba(248,226,219,.72));
+  border-color: rgba(154,160,106,.28);
+}
