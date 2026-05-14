@@ -1,6 +1,6 @@
-// Сустав+ Analytics endpoint v1.2
+// Сустав+ Analytics endpoint v1.6 — Google Sheets ready
 // Receives frontend events and optionally forwards them to:
-// 1) Google Sheets / Make / Zapier webhook: ANALYTICS_WEBHOOK_URL
+// 1) Google Sheets / Make / Zapier webhook: GOOGLE_SHEETS_WEBHOOK_URL or ANALYTICS_WEBHOOK_URL
 // 2) Telegram admin chat: TELEGRAM_BOT_TOKEN + ANALYTICS_CHAT_ID
 // No personal medical data is required. Keep analytics focused on product behavior.
 
@@ -56,14 +56,24 @@ function shouldSendToTelegram(eventName) {
 }
 
 async function forwardToWebhook(event) {
-  const url = process.env.ANALYTICS_WEBHOOK_URL;
-  if (!url) return { skipped: true };
+  const url = process.env.GOOGLE_SHEETS_WEBHOOK_URL || process.env.ANALYTICS_WEBHOOK_URL;
+  if (!url) return { skipped: true, reason: 'GOOGLE_SHEETS_WEBHOOK_URL / ANALYTICS_WEBHOOK_URL is not set' };
+
   const response = await fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(event)
   });
-  return { ok: response.ok, status: response.status };
+
+  let text = '';
+  try { text = await response.text(); } catch (_) {}
+
+  return {
+    ok: response.ok,
+    status: response.status,
+    target: process.env.GOOGLE_SHEETS_WEBHOOK_URL ? 'google_sheets' : 'analytics_webhook',
+    response: text.slice(0, 240)
+  };
 }
 
 async function notifyTelegram(event) {

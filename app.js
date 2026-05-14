@@ -3,7 +3,7 @@
   Static Telegram Mini App prototype: no backend, no payments, data saved in localStorage.
 */
 
-const APP_VERSION = "1.5-nutrition-weight-loss";
+const APP_VERSION = "1.6-google-sheets-analytics";
 const AI_API_URL = "/api/assistant"; // позже подключим Vercel Serverless Function + OpenAI API
 
 const medicalDisclaimer = "Материалы внутри приложения — образовательный маршрут и чек-листы. Они не заменяют врача, хирурга или реабилитолога. Ограничения после операции зависят от доступа, импланта, сопутствующих диагнозов и индивидуальных назначений.";
@@ -2722,6 +2722,17 @@ function bindEvents(root) {
     });
   });
 
+
+
+  root.querySelectorAll("[data-track-link]").forEach(el => {
+    el.addEventListener("click", () => {
+      trackEvent("external_click", {
+        key: el.dataset.trackLink || "",
+        href: el.href || "",
+        text: el.textContent.trim().slice(0, 100)
+      });
+    });
+  });
 
   root.querySelectorAll("a.external-link").forEach(link => {
     link.addEventListener("click", () => {
