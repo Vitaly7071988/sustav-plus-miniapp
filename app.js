@@ -3,7 +3,7 @@
   Static Telegram Mini App prototype: no backend, no payments, data saved in localStorage.
 */
 
-const APP_VERSION = "1.7-mature-profile-route";
+const APP_VERSION = "1.7.2-route-day-exercises";
 const AI_API_URL = "/api/assistant"; // позже подключим Vercel Serverless Function + OpenAI API
 
 const medicalDisclaimer = "Материалы внутри приложения — образовательный маршрут и чек-листы. Они не заменяют врача, хирурга или реабилитолога. Ограничения после операции зависят от доступа, импланта, сопутствующих диагнозов и индивидуальных назначений.";
@@ -1285,6 +1285,8 @@ const completed = store.get("sustav_completed", {});
 const tracker = store.get("sustav_tracker", []);
 const defaultProfile = {
   name: "",
+  telegramUsername: "",
+  consentProfile: false,
   stage: "",
   operation: "эндопротезирование",
   joint: "",
@@ -1836,12 +1838,44 @@ function dayWorkoutPlan(dayNumber) {
   ];
 }
 
+
+function uniqueDayExerciseIds(dayNumber) {
+  return [...new Set(dayWorkoutPlan(dayNumber).flatMap(group => group.ids))];
+}
+
+function dayExerciseCount(dayNumber) {
+  return uniqueDayExerciseIds(dayNumber).length;
+}
+
+function dayExercisePreview(dayNumber) {
+  return uniqueDayExerciseIds(dayNumber)
+    .slice(0, 3)
+    .map(id => exerciseById(id))
+    .filter(Boolean)
+    .map(ex => ex.title)
+    .join(", ");
+}
+
 function renderDayExercises(day) {
   const groups = dayWorkoutPlan(day.day);
+  const total = dayExerciseCount(day.day);
   return `
     <section class="section day-exercises-section">
-      <div class="section-head"><h3>ЛФК на сегодня</h3><span class="badge olive">день ${day.day}</span></div>
-      <div class="notice olive"><strong>Как пользоваться:</strong> откройте карточку упражнения, посмотрите технику и отметьте выполнение. Делайте только то, что разрешено врачом/реабилитологом.</div>
+      <div class="section-head">
+        <h3>Что делать сегодня</h3>
+        <span class="badge olive">${total} упражнений</span>
+      </div>
+
+      <div class="card today-workout-hero">
+        <div>
+          <span class="badge rose">День ${day.day}</span>
+          <h3>ЛФК встроена в маршрут</h3>
+          <p>Ниже — упражнения именно для выбранного дня: утро, день и вечер. Нажмите на карточку, чтобы открыть технику выполнения.</p>
+        </div>
+      </div>
+
+      <div class="notice olive"><strong>Безопасность:</strong> выполняйте только разрешённые упражнения. Если боль усилилась, появилась резкая боль, отёк, температура или другие красные флаги — остановитесь и свяжитесь с врачом.</div>
+
       <div class="day-workout-grid">
         ${groups.map(group => `
           <article class="card day-workout-card">
@@ -1864,6 +1898,8 @@ function renderDayExercises(day) {
           </article>
         `).join("")}
       </div>
+
+      <button class="secondary-btn full-width" data-nav="exercises">Открыть всю базу упражнений ›</button>
     </section>
   `;
 }
@@ -1891,6 +1927,8 @@ function renderRoute() {
       <div class="progress-art" aria-hidden="true"></div>
     </section>
 
+    ${renderDayExercises(day)}
+
     <section class="section">
       <div class="section-head"><h3>Выбор дня</h3><span class="badge gray">готово: ${doneDays}/${program.id}</span></div>
       <div class="path-grid">
@@ -1898,7 +1936,7 @@ function renderRoute() {
           const allDone = d.tasks.every((_, i) => isDone(taskKey(program.id, d.day, i)));
           return `<button class="path-card ${d.day === day.day ? "soft" : ""}" data-open-day="${d.day}" data-program="${program.id}">
             <span class="icon ${allDone ? "olive" : ""}">${allDone ? "✓" : d.day}</span>
-            <span><strong>День ${d.day}</strong><small>${h(d.title)}</small></span><span class="chev">›</span>
+            <span><strong>День ${d.day}</strong><small>${h(d.title)} • ${dayExerciseCount(d.day)} упр.</small><em>${h(dayExercisePreview(d.day))}</em></span><span class="chev">›</span>
           </button>`;
         }).join("")}
       </div>
@@ -1912,7 +1950,7 @@ function renderRoute() {
     </section>
 
     <section class="section">
-      <div class="section-head"><h3>План на сегодня</h3></div>
+      <div class="section-head"><h3>Задачи дня</h3><span class="badge gray">помимо ЛФК</span></div>
       <div class="card timeline">
         ${day.tasks.map((task, i) => {
           const key = taskKey(program.id, day.day, i);
@@ -2207,6 +2245,14 @@ function renderProfile() {
       </div>
     </section>
 
+
+    <section class="section card consent-card">
+      <label class="consent-row">
+        <input type="checkbox" data-profile-consent ${profile.consentProfile ? "checked" : ""} />
+        <span>Согласен(на), что данные анкеты используются для настройки маршрута в Сустав+ и обратной связи. Приложение не ставит диагнозы и не заменяет врача.</span>
+      </label>
+    </section>
+
     <section class="section card route-preview">
       <div class="section-head" style="margin-left:0"><h3>Ваш рекомендованный старт</h3><span class="badge olive">по анкете</span></div>
       ${routeButtonHtml(route, "stage-card")}
@@ -2223,6 +2269,7 @@ function renderProfile() {
       <div class="section-head"><h3>Ваши данные</h3><span class="badge gray">локально</span></div>
       <div class="card profile-data-list">
         ${[
+          ["Telegram", profile.telegramUsername],
           ["Этап", profile.stage],
           ["Сустав", profile.joint],
           ["Дата операции", profile.operationDate],
@@ -2231,7 +2278,8 @@ function renderProfile() {
           ["Цель", profile.mainGoal],
           ["Питание", profile.nutritionGoal],
           ["Реабилитация", profile.rehabGoal],
-          ["Личная помощь", profile.needHelp]
+          ["Личная помощь", profile.needHelp],
+          ["Согласие", profile.consentProfile ? "да" : "нет"]
         ].filter(row => row[1]).map(row => `<div><span>${h(row[0])}</span><strong>${h(row[1])}</strong></div>`).join("") || `<div><span>Анкета</span><strong>ещё не заполнена</strong></div>`}
       </div>
     </section>
@@ -2308,6 +2356,9 @@ function renderIntake() {
       <div class="section-head" style="margin-left:0"><h3>1. Основное</h3><span class="badge rose">обязательно</span></div>
       <label class="field-label">Имя / как обращаться</label>
       <input class="input" data-profile="name" value="${h(profile.name || "")}" placeholder="Например: Александр" />
+      <label class="field-label">Ваш Telegram username для обратной связи</label>
+      <input class="input" data-profile="telegramUsername" value="${h(profile.telegramUsername || "")}" placeholder="Например: @username" />
+      <small class="input-help">Необязательно, но поможет сопоставить вашу анкету, если вы потом напишете Виталию.</small>
 
       ${intakeFields.slice(0, 3).map(field => renderProfileField(field)).join("")}
     </section>
@@ -3024,28 +3075,50 @@ function bindEvents(root) {
       profile[input.dataset.profile] = input.value;
     });
   });
+
+  root.querySelectorAll("[data-profile-consent]").forEach(input => {
+    input.addEventListener("change", () => {
+      profile.consentProfile = input.checked;
+    });
+  });
+
   const saveProfile = root.querySelector("[data-save-profile]");
   if (saveProfile) saveProfile.addEventListener("click", () => {
+    const consentBox = root.querySelector("[data-profile-consent]");
+    if (consentBox && !consentBox.checked) {
+      alert("Пожалуйста, подтвердите согласие на использование данных анкеты для настройки маршрута.");
+      return;
+    }
+    const tgCtx = getTelegramContext();
+    if (!profile.telegramUsername && tgCtx.tgUsername) profile.telegramUsername = "@" + tgCtx.tgUsername;
     const wasComplete = isProfileComplete();
     profile.stage = profile.stage || profile["stage"] || "1–14 день после операции";
     profile.operation = profile.joint || profile.operation;
     profile.profileCompleted = true;
     profile.profileSkipped = false;
+    profile.consentProfile = !!(root.querySelector("[data-profile-consent]")?.checked || profile.consentProfile);
     profile.profileCompletedAt = profile.profileCompletedAt || new Date().toISOString();
     store.set("sustav_profile", profile);
     store.set("sustav_profile_completed", true);
     store.set("sustav_profile_skip", false);
     const eventName = wasComplete ? "profile_updated" : "profile_created";
     trackEvent(eventName, {
+      profileName: profile.name,
+      telegramUsername: profile.telegramUsername,
       joint: profile.joint,
       stage: profile.stage,
+      operationDate: profile.operationDate,
+      cityClinic: profile.cityClinic,
       daysAfter: profile.daysAfter,
       support: profile.support,
       mainGoal: profile.mainGoal,
+      painConcern: profile.painConcern,
       nutritionGoal: profile.nutritionGoal,
       rehabGoal: profile.rehabGoal,
       needHelp: profile.needHelp,
-      operationDate: profile.operationDate
+      restrictions: profile.restrictions,
+      consentProfile: profile.consentProfile,
+      profileCompletedAt: profile.profileCompletedAt
     });
     const route = recommendedRoute();
     if (route.program) {
