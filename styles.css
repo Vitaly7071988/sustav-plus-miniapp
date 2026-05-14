@@ -1090,3 +1090,49 @@ body {
 .check-dot {
   font-variant-numeric: tabular-nums;
 }
+
+
+/* v1.5 nutrition weight loss section */
+.weight-loss-entry {
+  padding: 18px;
+  background: linear-gradient(135deg, rgba(248,226,219,.72), rgba(255,252,247,.92));
+}
+.entry-top {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  margin-bottom: 14px;
+}
+.entry-top h3 {
+  margin: 0;
+  font-size: 20px;
+  line-height: 1.2;
+}
+.entry-top p {
+  margin: 6px 0 0;
+  color: var(--muted);
+  line-height: 1.45;
+}
+.nutrition-grid {
+  display: grid;
+  gap: 12px;
+}
+.nutrition-card {
+  padding: 16px;
+}
+.nutrition-title {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 10px;
+}
+.nutrition-title h3 {
+  margin: 0;
+  font-size: 18px;
+  line-height: 1.22;
+}
+.nutrition-card p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.5;
+}

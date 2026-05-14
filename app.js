@@ -3,7 +3,7 @@
   Static Telegram Mini App prototype: no backend, no payments, data saved in localStorage.
 */
 
-const APP_VERSION = "1.4.1-day-exercises";
+const APP_VERSION = "1.5-nutrition-weight-loss";
 const AI_API_URL = "/api/assistant"; // позже подключим Vercel Serverless Function + OpenAI API
 
 const medicalDisclaimer = "Материалы внутри приложения — образовательный маршрут и чек-листы. Они не заменяют врача, хирурга или реабилитолога. Ограничения после операции зависят от доступа, импланта, сопутствующих диагнозов и индивидуальных назначений.";
@@ -826,11 +826,67 @@ const memos = [
 const nutritionExpert = {
   name: "Виктория Клочихина",
   role: "нутрициолог проекта",
-  link: "https://t.me/klochikhinanutrition",
-  username: "@klochikhinanutrition",
+  link: "https://t.me/victoriaklochikhina",
+  username: "@victoriaklochikhina",
   email: "victoria.klochikhina@gmail.com",
   text: "Помогает выстроить питание до и после операции: белок, вода, вес, запоры, восстановление, дефициты и мягкий режим без крайностей.",
   areas: ["белок и восстановление тканей", "вода и режим питания", "запоры и ЖКТ", "вес и отёчность", "подготовка вопросов по анализам"]
+};
+
+
+const weightLossNutrition = {
+  title: "Как снизить вес безопасно",
+  subtitle: "без вреда для восстановления после операции",
+  intro: "Лишний вес может усиливать нагрузку на суставы, но после операции нельзя худеть агрессивно. Главная цель — не голодовка, а мягкий дефицит, белок, вода, регулярный стул и стабильная энергия.",
+  principles: [
+    {
+      title: "Не резать питание резко",
+      icon: "⚖️",
+      text: "После операции телу нужны ресурсы для восстановления. Слишком жёсткий дефицит может усиливать слабость, тягу к сладкому и откаты."
+    },
+    {
+      title: "Белок в каждый приём пищи",
+      icon: "🍳",
+      text: "Белок помогает сохранять мышцы и поддерживать восстановление. Источники: рыба, птица, яйца, творог/йогурт по переносимости, бобовые, протеин по согласованию."
+    },
+    {
+      title: "Тарелка без паники",
+      icon: "🥗",
+      text: "Ориентир: 1/2 тарелки овощи, 1/4 белок, 1/4 сложные углеводы + немного жиров. Это проще, чем считать каждую крошку."
+    },
+    {
+      title: "Следить за водой и стулом",
+      icon: "💧",
+      text: "Запоры и отёчность часто мешают ощущению лёгкости. Вода, клетчатка и регулярность питания важнее, чем очередная “волшебная” диета."
+    },
+    {
+      title: "Не худеть через боль",
+      icon: "🚶",
+      text: "Активность добавляем постепенно. Ходьба, ЛФК и бытовое движение должны быть безопасными и не усиливать боль на следующий день."
+    }
+  ],
+  mistakes: [
+    "садиться на жёсткую диету сразу после операции",
+    "убирать весь хлеб/крупы и потом срываться на сладкое",
+    "недобирать белок",
+    "заменять питание кофе и перекусами",
+    "увеличивать ходьбу резко ради похудения",
+    "пить добавки вместо нормального рациона"
+  ],
+  whenToAsk: [
+    "вес растёт на сниженной активности",
+    "сильная тяга к сладкому",
+    "отеки и запоры",
+    "страх набрать вес после операции",
+    "непонятно, сколько белка и еды нужно",
+    "хочется подобрать витамины/добавки безопасно"
+  ],
+  cta: {
+    title: "Разбор питания с Викторией",
+    text: "Можно разобрать питание, вес, белок, запоры, воду, анализы и добавки индивидуально — без жёстких диет и без назначения “всем одно и то же”.",
+    button: "Написать Виктории",
+    url: "https://t.me/victoriaklochikhina"
+  }
 };
 
 const projectAuthor = {
@@ -969,8 +1025,8 @@ const ecosystemLinks = [
   { group: "Видео", title: "VK Видео / сообщество", desc: "видео и материалы проекта во ВКонтакте", url: "https://vk.ru/club235710691", icon: "VK" },
   { group: "Сообщество", title: "Чат сообщества", desc: "общение и поддержка вокруг темы суставов", url: "https://t.me/+Y5MG9FRH1Zs1ZTMy", icon: "💬" },
   { group: "Сообщество", title: "Путь без боли", desc: "телеграф о навигации и сопровождении", url: "https://telegra.ph/Put-bez-boli-01-31", icon: "🛤️" },
-  { group: "Питание", title: "Виктория Клочихина • нутрициолог", desc: "питание, белок, вода, ЖКТ и восстановление", url: "https://t.me/klochikhinanutrition", icon: "🥗" },
-  { group: "Питание", title: "Клочихина Nutrition", desc: "канал Виктории Клочихиной о питании и восстановлении", url: "https://t.me/klochikhinanutrition", icon: "🌿" },
+  { group: "Питание", title: "Виктория Клочихина • нутрициолог", desc: "питание, белок, вода, ЖКТ и восстановление", url: "https://t.me/victoriaklochikhina", icon: "🥗" },
+  { group: "Питание", title: "Клочихина Nutrition", desc: "канал Виктории Клочихиной о питании и восстановлении", url: "https://t.me/victoriaklochikhina", icon: "🌿" },
   { group: "Питание", title: "Новая энергия", desc: "дополнительный канал экосистемы", url: "https://t.me/novaya_energia", icon: "⚡" }
 ];
 
@@ -1095,7 +1151,7 @@ const supportMessages = [
 const teamDefaults = [
   { role: "Хирург", value: "не указан" },
   { role: "Реабилитолог", value: "не указан" },
-  { role: "Нутрициолог", value: "Виктория Клочихина — @klochikhinanutrition" },
+  { role: "Нутрициолог", value: "Виктория Клочихина — @victoriaklochikhina" },
   { role: "Клиника", value: "не указана" },
   { role: "Дата операции", value: "не указана" },
   { role: "Следующий осмотр", value: "не указан" }
@@ -1106,7 +1162,7 @@ const assistantSamples = [
   { q: "Боль стала 6/10 после ходьбы. Что делать?", a: "Снизить нагрузку, дать отдых, отметить боль/отёк в трекере. Если боль резкая, нарастает, появилась температура, сильный отёк, одышка или боль в груди — срочно связаться с врачом. Если это реакция на перегруз, завтра не добавлять объём." },
   { q: "Сколько пить воды?", a: "В тестовой версии стоит цель 3 литра в день равномерно. Но если есть ограничения по почкам, сердцу, давлению, отёкам или врач ограничил жидкость — цель меняется по назначению врача." },
   { q: "Я на работе долго сижу. Что делать?", a: "Каждые 60–90 минут сделать микро-паузу: аккуратно встать, пройтись 1–2 минуты, выполнить движения стопами и спокойное дыхание. Без глубоких приседов и резких поворотов." },
-  { q: "К кому обратиться по питанию?", a: "Внутри проекта по питанию можно обратиться к Виктории Клочихиной, нутрициологу. Она помогает с белком, водой, режимом питания, восстановлением, ЖКТ и мягкой поддержкой до/после операции. Ссылка: https://t.me/klochikhinanutrition" },
+  { q: "К кому обратиться по питанию?", a: "Внутри проекта по питанию можно обратиться к Виктории Клочихиной, нутрициологу. Она помогает с белком, водой, режимом питания, восстановлением, ЖКТ и мягкой поддержкой до/после операции. Ссылка: https://t.me/victoriaklochikhina" },
   { q: "Где ваши каналы и видео?", a: "Откройте экран «Контакты» или «Автор проекта»: там собраны Виталий Клочихин, Telegram @newsustav, YouTube-канал, VK Видео, сайт, чат сообщества, навигация и канал Виктории Клочихиной." }
 ];
 
@@ -2112,6 +2168,56 @@ function renderSupport() {
 }
 
 
+
+function renderWeightLossNutrition() {
+  return `
+    ${backRow("К питанию", "nutrition")}
+    ${topScreen(weightLossNutrition.title, weightLossNutrition.subtitle)}
+
+    <section class="section" style="margin-top:0">
+      <div class="notice olive"><strong>Важно:</strong> ${h(weightLossNutrition.intro)}</div>
+    </section>
+
+    <section class="section">
+      <div class="section-head"><h3>5 принципов мягкого снижения веса</h3><span class="badge olive">без перегруза</span></div>
+      <div class="nutrition-grid">
+        ${weightLossNutrition.principles.map((p, idx) => `
+          <article class="card nutrition-card">
+            <div class="nutrition-title">
+              <span class="icon ${idx % 2 ? "olive" : "rose"}">${h(p.icon)}</span>
+              <h3>${h(p.title)}</h3>
+            </div>
+            <p>${h(p.text)}</p>
+          </article>
+        `).join("")}
+      </div>
+    </section>
+
+    <section class="section card">
+      <div class="section-head"><h3>Частые ошибки</h3><span class="badge rose">не надо так</span></div>
+      <ul class="warnings">${weightLossNutrition.mistakes.map(item => `<li>${h(item)}</li>`).join("")}</ul>
+    </section>
+
+    <section class="section card">
+      <div class="section-head"><h3>Когда стоит написать Виктории</h3><span class="badge olive">индивидуально</span></div>
+      <ul class="checklist">${weightLossNutrition.whenToAsk.map(item => `<li>${h(item)}</li>`).join("")}</ul>
+    </section>
+
+    <section class="section card action-card">
+      <h3>${h(weightLossNutrition.cta.title)}</h3>
+      <p>${h(weightLossNutrition.cta.text)}</p>
+      <div class="cta-row">
+        <a class="primary-btn" href="${h(weightLossNutrition.cta.url)}" target="_blank" rel="noopener" data-track-link="victoria_weight_loss">${h(weightLossNutrition.cta.button)}</a>
+        <button class="secondary-btn" data-nav="nutrition">Вернуться в питание ›</button>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="notice"><strong>Безопасность:</strong> раздел носит образовательный характер. При заболеваниях, анемии, диабете, проблемах с почками/сердцем, приёме препаратов или после сложной операции питание и добавки лучше разбирать со специалистом и врачом.</div>
+    </section>
+  `;
+}
+
 function renderNutrition() {
   return `
     ${topScreen("Питание", "нутрициолог проекта")}
@@ -2493,6 +2599,7 @@ function render() {
   if (state.screen === "team") body = renderTeam();
   if (state.screen === "support") body = renderSupport();
   if (state.screen === "nutrition") body = renderNutrition();
+  if (state.screen === "weight-loss-nutrition") body = renderWeightLossNutrition();
   if (state.screen === "links") body = renderLinks();
   if (state.screen === "author") body = renderAuthor();
   if (state.screen === "intro") body = renderIntro();
