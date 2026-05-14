@@ -1136,3 +1136,92 @@ body {
   color: var(--muted);
   line-height: 1.5;
 }
+
+
+/* v1.7 mature profile / intake */
+.profile-required,
+.intake-hero,
+.home-hero-v17 {
+  background:
+    radial-gradient(circle at 88% 18%, rgba(154,160,106,.18), transparent 34%),
+    linear-gradient(135deg, rgba(248,226,219,.82), rgba(255,252,247,.94));
+}
+.profile-progress {
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(110,101,93,.12);
+  overflow: hidden;
+  margin-top: 12px;
+}
+.profile-progress span {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--rose), var(--olive));
+}
+.profile-progress-text {
+  display: block;
+  color: var(--muted);
+  margin-top: 6px;
+  font-weight: 700;
+}
+.mature-intake {
+  padding: 18px;
+}
+.required-dot {
+  display: inline-flex;
+  margin-left: 6px;
+  padding: 3px 7px;
+  border-radius: 999px;
+  background: rgba(185,111,102,.12);
+  color: var(--rose);
+  font-size: 10px;
+  font-weight: 900;
+  vertical-align: middle;
+}
+.route-preview {
+  padding: 18px;
+  background: linear-gradient(135deg, rgba(238,240,227,.72), rgba(255,252,247,.95));
+}
+.profile-card-v17 {
+  align-items: flex-start;
+}
+.profile-data-list {
+  padding: 8px 14px;
+}
+.profile-data-list div {
+  display: grid;
+  grid-template-columns: minmax(92px, .8fr) 1.4fr;
+  gap: 12px;
+  padding: 11px 0;
+  border-bottom: 1px solid rgba(110,101,93,.09);
+}
+.profile-data-list div:last-child {
+  border-bottom: 0;
+}
+.profile-data-list span {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 800;
+}
+.profile-data-list strong {
+  font-size: 14px;
+  line-height: 1.35;
+}
+.full-width {
+  width: 100%;
+  justify-content: center;
+  margin-top: 12px;
+}
+.field-label {
+  display: block;
+  margin-top: 14px;
+  margin-bottom: 7px;
+  line-height: 1.25;
+}
+.input, .textarea {
+  line-height: 1.35;
+}
+.textarea {
+  min-height: 92px;
+}

@@ -3,7 +3,7 @@
   Static Telegram Mini App prototype: no backend, no payments, data saved in localStorage.
 */
 
-const APP_VERSION = "1.6-google-sheets-analytics";
+const APP_VERSION = "1.7-mature-profile-route";
 const AI_API_URL = "/api/assistant"; // позже подключим Vercel Serverless Function + OpenAI API
 
 const medicalDisclaimer = "Материалы внутри приложения — образовательный маршрут и чек-листы. Они не заменяют врача, хирурга или реабилитолога. Ограничения после операции зависят от доступа, импланта, сопутствующих диагнозов и индивидуальных назначений.";
@@ -1090,11 +1090,102 @@ const onboardingSlides = [
 ];
 
 const intakeFields = [
-  { id: "joint", label: "Сустав / зона", type: "select", options: ["Тазобедренный сустав", "Коленный сустав", "Плечевой сустав", "Другое"] },
-  { id: "stage", label: "Этап", type: "select", options: ["Готовлюсь к операции", "1–14 день после операции", "15–30 день после операции", "1–3 месяца", "Просто хочу безопасно двигаться"] },
-  { id: "daysAfter", label: "Сколько дней после операции", type: "number", placeholder: "Например: 7" },
-  { id: "support", label: "Опора сейчас", type: "select", options: ["Хожу без опоры", "Трость", "Один костыль", "Два костыля / ходунки", "Пока почти не хожу"] },
-  { id: "restrictions", label: "Ограничения от врача", type: "textarea", placeholder: "Например: не сгибать больше 90°, не скрещивать ноги..." }
+  {
+    id: "stage",
+    label: "Где вы сейчас?",
+    type: "select",
+    required: true,
+    options: [
+      "Готовлюсь к операции",
+      "1–14 день после операции",
+      "15–30 день после операции",
+      "1–6 месяцев после операции",
+      "Больше 6 месяцев с протезом",
+      "Пока выбираю врача / думаю об операции",
+      "Просто хочу безопасно двигаться"
+    ]
+  },
+  {
+    id: "joint",
+    label: "Какой сустав / зона?",
+    type: "select",
+    required: true,
+    options: ["Тазобедренный сустав", "Коленный сустав", "Плечевой сустав", "Другое / уточню в комментарии"]
+  },
+  { id: "operationDate", label: "Дата операции / планируемая дата", type: "date" },
+  { id: "cityClinic", label: "Город / клиника / врач, если хотите указать", type: "text", placeholder: "Например: Чебоксары, Москва, Питер..." },
+  { id: "daysAfter", label: "Сколько дней после операции", type: "number", placeholder: "Если операция уже была: например 7" },
+  {
+    id: "support",
+    label: "Опора сейчас",
+    type: "select",
+    options: ["Пока не знаю", "Хожу без опоры", "Трость", "Один костыль", "Два локтевых костыля", "Ходунки", "Пока почти не хожу"]
+  },
+  {
+    id: "mainGoal",
+    label: "Что сейчас важнее всего?",
+    type: "select",
+    required: true,
+    options: [
+      "Понять, как подготовиться к операции",
+      "Понять, что делать каждый день после операции",
+      "Безопасно делать ЛФК",
+      "Разобраться с болью / отёком / страхами",
+      "Снизить вес и наладить питание",
+      "Подготовить дом после операции",
+      "Жить активно с протезом дальше"
+    ]
+  },
+  {
+    id: "painConcern",
+    label: "Есть ли непонятные боли или симптомы?",
+    type: "textarea",
+    placeholder: "Например: спина, стопа, голеностоп, онемение, жжение, отёк..."
+  },
+  {
+    id: "nutritionGoal",
+    label: "Питание / вес / витамины",
+    type: "select",
+    options: [
+      "Пока не актуально",
+      "Хочу снизить вес",
+      "Нужно понять, как есть для восстановления",
+      "Интересуют витамины / добавки",
+      "Есть запоры / слабость / отёки",
+      "Хочу индивидуальный разбор с Викторией"
+    ]
+  },
+  {
+    id: "rehabGoal",
+    label: "Реабилитация",
+    type: "select",
+    options: [
+      "Пока достаточно приложения",
+      "Хочу понять, какие упражнения делать",
+      "Хочу разбор с реабилитологом",
+      "Нужен контроль техники",
+      "Нужен персональный план нагрузки"
+    ]
+  },
+  {
+    id: "needHelp",
+    label: "Нужна ли личная помощь?",
+    type: "select",
+    options: [
+      "Пока просто смотрю приложение",
+      "Хочу индивидуальный маршрут",
+      "Хочу подготовить дом к операции",
+      "Хочу питание / вес / витамины с Викторией",
+      "Хочу реабилитолога / Антона",
+      "Хочу сопровождение"
+    ]
+  },
+  {
+    id: "restrictions",
+    label: "Ограничения от врача / важные детали",
+    type: "textarea",
+    placeholder: "Например: не сгибать больше 90°, не скрещивать ноги, есть сопутствующие диагнозы..."
+  }
 ];
 
 const redFlags = [
@@ -1192,16 +1283,86 @@ const state = {
 
 const completed = store.get("sustav_completed", {});
 const tracker = store.get("sustav_tracker", []);
-const profile = store.get("sustav_profile", {
-  name: "Пациент",
-  stage: "Неделя 1 • после ТБС",
-  operation: "эндопротезирование ТБС",
-  joint: "Тазобедренный сустав",
-  daysAfter: "3",
-  support: "Два костыля / ходунки",
-  restrictions: "Уточнить у врача индивидуальные ограничения",
+const defaultProfile = {
+  name: "",
+  stage: "",
+  operation: "эндопротезирование",
+  joint: "",
+  operationDate: "",
+  cityClinic: "",
+  daysAfter: "",
+  support: "",
+  mainGoal: "",
+  painConcern: "",
+  nutritionGoal: "",
+  rehabGoal: "",
+  needHelp: "",
+  restrictions: "",
+  profileCompleted: false,
+  profileSkipped: false,
+  profileCompletedAt: "",
   team: teamDefaults
-});
+};
+
+const savedProfile = store.get("sustav_profile", {});
+const profile = { ...defaultProfile, ...savedProfile };
+profile.team = profile.team || teamDefaults;
+
+function isProfileComplete() {
+  return !!profile.profileCompleted || !!store.get("sustav_profile_completed", false);
+}
+
+function shouldShowIntakeFirst() {
+  return !isProfileComplete() && !profile.profileSkipped && !store.get("sustav_profile_skip", false);
+}
+
+function stageKey() {
+  const stage = String(profile.stage || "");
+  const days = Number(profile.daysAfter || 0);
+  if (stage.includes("Готовлюсь") || stage.includes("выбираю")) return "preop";
+  if (stage.includes("1–14") || (days > 0 && days <= 14)) return "early14";
+  if (stage.includes("15–30") || (days > 14 && days <= 30)) return "early30";
+  if (stage.includes("1–6")) return "months";
+  if (stage.includes("Больше 6")) return "longlife";
+  return "general";
+}
+
+function recommendedRoute() {
+  const key = stageKey();
+  if (key === "preop") return { title: "Готовлюсь к операции", text: "чек-листы, вопросы врачу, дом и спокойная подготовка", screen: "preop", icon: "🧳" };
+  if (key === "early14") return { title: "Первые 14 дней", text: "мягкий старт, безопасность, ЛФК на сегодня", program: 14, icon: "14" };
+  if (key === "early30") return { title: "Первые 30 дней", text: "ежедневный маршрут, трекер, упражнения и режим", program: 30, icon: "30" };
+  if (key === "months" || key === "longlife") return { title: "Жизнь с протезом", text: "движение, вес, привычки и долгий ресурс", screen: "longlife", icon: "∞" };
+  return { title: "Мой ритм движения", text: "зарядка, прогулки, вода и дневник активности", screen: "rhythm", icon: "✓" };
+}
+
+function nextBestScreens() {
+  const key = stageKey();
+  const common = [
+    { title: "Красные флаги", text: "когда не ждать", screen: "safety", icon: "🚦" },
+    { title: "Питание", text: "вес, белок, восстановление", screen: "nutrition", icon: "🥗" }
+  ];
+  if (key === "preop") return [
+    { title: "Вопросы врачу", text: "что уточнить до операции", screen: "questions", icon: "?" },
+    { title: "Дом готов", text: "что купить и подготовить", screen: "concierge", icon: "🏠" },
+    ...common
+  ];
+  if (key === "early14" || key === "early30") return [
+    { title: "Упражнения", text: "ЛФК с карточками", screen: "exercises", icon: "♿" },
+    { title: "Трекер боли", text: "боль, отёк, сон, ходьба", screen: "tracker", icon: "▧" },
+    ...common
+  ];
+  if (key === "months" || key === "longlife") return [
+    { title: "Ритм движения", text: "не выпадать из режима", screen: "rhythm", icon: "✓" },
+    { title: "Как похудеть", text: "снижение веса без перегруза", screen: "weight-loss-nutrition", icon: "⚖️" },
+    ...common
+  ];
+  return [
+    { title: "Упражнения", text: "база безопасного движения", screen: "exercises", icon: "♿" },
+    { title: "Готовлюсь к операции", text: "если операция впереди", screen: "preop", icon: "🧳" },
+    ...common
+  ];
+}
 const routineProgress = store.get("sustav_routines", {});
 const waterProgress = store.get("sustav_water", {});
 
@@ -1391,7 +1552,25 @@ function currentPainZone() {
   return painTraffic[2];
 }
 function profileSummary() {
-  return `${profile.joint || profile.operation || "сустав"} • ${profile.stage || "этап не указан"}`;
+  const parts = [];
+  if (profile.stage) parts.push(profile.stage);
+  if (profile.joint) parts.push(profile.joint);
+  if (profile.operationDate) parts.push(`операция: ${profile.operationDate}`);
+  if (profile.support) parts.push(profile.support);
+  return parts.length ? parts.join(" • ") : "анкета ещё не заполнена";
+}
+
+function profileCompletionPercent() {
+  const required = ["stage", "joint", "mainGoal"];
+  const useful = ["operationDate", "daysAfter", "support", "nutritionGoal", "rehabGoal", "needHelp"];
+  const score = required.filter(k => profile[k]).length * 2 + useful.filter(k => profile[k]).length;
+  const max = required.length * 2 + useful.length;
+  return Math.min(100, Math.round((score / max) * 100));
+}
+
+function routeButtonHtml(item, className = "stage-card") {
+  if (item.program) return `<button class="${className}" data-open-program="${item.program}"><span class="icon olive">${h(item.icon)}</span><span><strong>${h(item.title)}</strong><small>${h(item.text)}</small></span><span class="chev">›</span></button>`;
+  return `<button class="${className}" data-nav="${h(item.screen)}"><span class="icon ${item.icon === "🚦" ? "rose" : "olive"}">${h(item.icon)}</span><span><strong>${h(item.title)}</strong><small>${h(item.text)}</small></span><span class="chev">›</span></button>`;
 }
 function weeklySummary() {
   const last = tracker.slice(-7);
@@ -1487,41 +1666,74 @@ function bottomNav() {
 function renderHome() {
   const doneRoutines = dailyRoutines.filter(r => isRoutineDone(r.id)).length;
   const pain = latestPain();
+  const route = recommendedRoute();
+  const extra = nextBestScreens();
+  const completed = isProfileComplete();
   return `
     ${topBrand()}
-    <section class="card hero soft home-hero-v14">
-      <div>
-        <span class="badge olive">бесплатный навигатор</span>
-        <h2>Где вы сейчас?</h2>
-        <p>Выберите свой этап — приложение покажет нужный маршрут без лишнего хаоса.</p>
-      </div>
-      <div class="hero-art" aria-hidden="true"></div>
-    </section>
+
+    ${!completed ? `
+      <section class="card hero soft profile-required">
+        <div>
+          <span class="badge rose">первый шаг</span>
+          <h2>Настроим ваш маршрут</h2>
+          <p>Ответьте на короткую анкету — и приложение покажет, что важнее именно сейчас: подготовка, первые дни, ЛФК, питание или жизнь с протезом.</p>
+          <div class="cta-row">
+            <button class="primary-btn" data-nav="intake">Заполнить анкету</button>
+            <button class="secondary-btn" data-skip-intake>Посмотреть без анкеты</button>
+          </div>
+        </div>
+        <div class="hero-art" aria-hidden="true"></div>
+      </section>
+    ` : `
+      <section class="card hero soft home-hero-v17">
+        <div>
+          <span class="badge olive">ваш маршрут настроен</span>
+          <h2>${h(profile.name || "Ваш")} маршрут</h2>
+          <p>${h(profileSummary())}</p>
+          <div class="profile-progress"><span style="width:${profileCompletionPercent()}%"></span></div>
+          <small class="profile-progress-text">Профиль заполнен на ${profileCompletionPercent()}%</small>
+        </div>
+        <div class="hero-art" aria-hidden="true"></div>
+      </section>
+    `}
 
     <section class="section first-step-section">
+      <div class="section-head"><h3>${completed ? "Что открыть первым" : "Быстрый выбор этапа"}</h3><button class="link-btn" data-nav="intake">${completed ? "Изменить анкету" : "Анкета"} ›</button></div>
       <div class="stage-grid">
-        <button class="stage-card" data-nav="preop">
-          <span class="icon rose">🧳</span>
-          <span><strong>Готовлюсь к операции</strong><small>вопросы врачу, дом, больница</small></span>
-          <span class="chev">›</span>
-        </button>
-        <button class="stage-card" data-open-program="30">
-          <span class="icon olive">30</span>
-          <span><strong>Первые 30 дней</strong><small>ежедневный маршрут после операции</small></span>
-          <span class="chev">›</span>
-        </button>
-        <button class="stage-card" data-nav="longlife">
-          <span class="icon olive">∞</span>
-          <span><strong>Живу с протезом</strong><small>6 месяцев, год и дальше</small></span>
-          <span class="chev">›</span>
-        </button>
-        <button class="stage-card" data-nav="rhythm">
-          <span class="icon rose">✓</span>
-          <span><strong>Мой ритм движения</strong><small>зарядка, прогулка, паузы</small></span>
-          <span class="chev">›</span>
-        </button>
+        ${completed ? routeButtonHtml(route) : `
+          <button class="stage-card" data-nav="preop">
+            <span class="icon rose">🧳</span>
+            <span><strong>Готовлюсь к операции</strong><small>вопросы врачу, дом, больница</small></span>
+            <span class="chev">›</span>
+          </button>
+          <button class="stage-card" data-open-program="30">
+            <span class="icon olive">30</span>
+            <span><strong>Первые 30 дней</strong><small>ежедневный маршрут после операции</small></span>
+            <span class="chev">›</span>
+          </button>
+          <button class="stage-card" data-nav="longlife">
+            <span class="icon olive">∞</span>
+            <span><strong>Живу с протезом</strong><small>6 месяцев, год и дальше</small></span>
+            <span class="chev">›</span>
+          </button>
+          <button class="stage-card" data-nav="rhythm">
+            <span class="icon rose">✓</span>
+            <span><strong>Мой ритм движения</strong><small>зарядка, прогулка, паузы</small></span>
+            <span class="chev">›</span>
+          </button>
+        `}
       </div>
     </section>
+
+    ${completed ? `
+      <section class="section">
+        <div class="section-head"><h3>Рекомендовано по анкете</h3><span class="badge gray">персонально</span></div>
+        <div class="path-grid secondary-grid">
+          ${extra.map(item => routeButtonHtml(item, "path-card")).join("")}
+        </div>
+      </section>
+    ` : ""}
 
     <section class="section">
       <div class="section-head"><h3>Сегодня</h3><button class="link-btn" data-nav="rhythm">Открыть ритм ›</button></div>
@@ -1540,7 +1752,7 @@ function renderHome() {
         <button class="quick-btn" data-nav="tracker">▧ Трекер</button>
         <button class="quick-btn" data-nav="nutrition">🥗 Питание</button>
         <button class="quick-btn strong" data-nav="concierge">🏠 Дом готов</button>
-        <button class="quick-btn" data-nav="author">👤 Автор</button>
+        <button class="quick-btn" data-nav="profile">◉ Профиль</button>
       </div>
     </section>
 
@@ -1548,11 +1760,11 @@ function renderHome() {
       <div class="section-head"><h3>Все разделы</h3><span class="badge gray">если хотите глубже</span></div>
       <div class="path-grid secondary-grid">
         <button class="path-card" data-open-program="14"><span class="icon">14</span><span><strong>Первые 14 дней</strong><small>короткий старт</small></span><span class="chev">›</span></button>
+        <button class="path-card" data-open-program="30"><span class="icon olive">30</span><span><strong>Первые 30 дней</strong><small>расширенный маршрут</small></span><span class="chev">›</span></button>
         <button class="path-card" data-nav="daily"><span class="icon olive">☀</span><span><strong>Режим дня</strong><small>дыхание, вода, паузы</small></span><span class="chev">›</span></button>
         <button class="path-card" data-nav="questions"><span class="icon olive">?</span><span><strong>Вопросы врачу</strong><small>чек-лист консультации</small></span><span class="chev">›</span></button>
         <button class="path-card" data-nav="support"><span class="icon olive">♡</span><span><strong>Спокойствие</strong><small>поддержка и страхи</small></span><span class="chev">›</span></button>
         <button class="path-card" data-nav="links"><span class="icon">🔗</span><span><strong>Контакты</strong><small>каналы, сайт, видео</small></span><span class="chev">›</span></button>
-        <button class="path-card" data-nav="profile"><span class="icon olive">★</span><span><strong>Профиль</strong><small>этап и команда</small></span><span class="chev">›</span></button>
       </div>
     </section>
 
@@ -1561,7 +1773,6 @@ function renderHome() {
     </section>
   `;
 }
-
 
 function exerciseById(id) {
   return exercises.find(ex => ex.id === id);
@@ -1982,15 +2193,24 @@ function renderProfile() {
   const done30 = countDoneDays(30);
   const source = sourceRef();
   const sourceText = sourceLabel(source);
+  const route = recommendedRoute();
   return `
-    ${topScreen("Профиль", "ваш путь восстановления")}
-    <section class="card profile-card">
-      <div class="avatar">◉</div>
+    ${topScreen("Профиль", "анкета и персональный маршрут")}
+
+    <section class="card profile-card profile-card-v17">
+      <div class="avatar">${isProfileComplete() ? "✓" : "?"}</div>
       <div style="flex:1; min-width:0">
-        <strong style="font-size:20px">${h(profile.name)}</strong>
-        <div class="subtitle" style="margin-top:2px">${h(profile.stage)}</div>
+        <strong style="font-size:20px">${h(profile.name || "Пациент")}</strong>
+        <div class="subtitle" style="margin-top:2px">${h(profileSummary())}</div>
+        <div class="profile-progress"><span style="width:${profileCompletionPercent()}%"></span></div>
+        <small class="profile-progress-text">Профиль заполнен на ${profileCompletionPercent()}%</small>
       </div>
-      <span class="chev">›</span>
+    </section>
+
+    <section class="section card route-preview">
+      <div class="section-head" style="margin-left:0"><h3>Ваш рекомендованный старт</h3><span class="badge olive">по анкете</span></div>
+      ${routeButtonHtml(route, "stage-card")}
+      <button class="secondary-btn full-width" data-nav="intake">Изменить анкету</button>
     </section>
 
     <section class="section card stats-grid">
@@ -2000,29 +2220,37 @@ function renderProfile() {
     </section>
 
     <section class="section">
-      <div class="section-head"><h3>Ваши инструменты</h3></div>
-      <div class="list">
-        <button class="list-item" data-nav="tracker"><span class="icon">▧</span><span><strong>Трекер боли</strong><div class="meta">дневник самочувствия</div></span><span class="chev">›</span></button>
-        <button class="list-item" data-nav="memos"><span class="icon olive">📌</span><span><strong>Памятки</strong><div class="meta">правила, красные флаги, быт</div></span><span class="chev">›</span></button>
-        <button class="list-item" data-nav="safety"><span class="icon">🚦</span><span><strong>Безопасность</strong><div class="meta">светофор боли и красные флаги</div></span><span class="chev">›</span></button>
-        <button class="list-item" data-nav="questions"><span class="icon olive">?</span><span><strong>Вопросы врачу</strong><div class="meta">готовый список для консультации</div></span><span class="chev">›</span></button>
-        <button class="list-item" data-nav="team"><span class="icon">👥</span><span><strong>Моя команда</strong><div class="meta">хирург, реабилитолог, нутрициолог, осмотр</div></span><span class="chev">›</span></button>
-        <button class="list-item" data-nav="nutrition"><span class="icon olive">🥗</span><span><strong>Нутрициолог</strong><div class="meta">Виктория Клочихина и питание для восстановления</div></span><span class="chev">›</span></button>
-        <button class="list-item" data-nav="links"><span class="icon">🔗</span><span><strong>Каналы и ссылки</strong><div class="meta">Telegram, YouTube, VK, сайт, чат</div></span><span class="chev">›</span></button>
-        <button class="list-item" data-nav="author"><span class="icon olive">👤</span><span><strong>Автор проекта</strong><div class="meta">Виталий Клочихин, YouTube и Telegram</div></span><span class="chev">›</span></button>
-        <button class="list-item" data-nav="cancant"><span class="icon olive">✓</span><span><strong>Можно / нельзя</strong><div class="meta">по этапам 1–30 дней</div></span><span class="chev">›</span></button>
-        <button class="list-item" data-nav="weekly"><span class="icon">📊</span><span><strong>Итог недели</strong><div class="meta">средняя боль и динамика</div></span><span class="chev">›</span></button>
-        <button class="list-item" data-open-program="30"><span class="icon">✅</span><span><strong>Чек-листы 30 дней</strong><div class="meta">расширенный маршрут</div></span><span class="chev">›</span></button>
-        <button class="list-item" data-nav="route"><span class="icon olive">📊</span><span><strong>История прогресса</strong><div class="meta">готово 14 дней: ${done14}, 30 дней: ${done30}</div></span><span class="chev">›</span></button>
+      <div class="section-head"><h3>Ваши данные</h3><span class="badge gray">локально</span></div>
+      <div class="card profile-data-list">
+        ${[
+          ["Этап", profile.stage],
+          ["Сустав", profile.joint],
+          ["Дата операции", profile.operationDate],
+          ["Дней после", profile.daysAfter],
+          ["Опора", profile.support],
+          ["Цель", profile.mainGoal],
+          ["Питание", profile.nutritionGoal],
+          ["Реабилитация", profile.rehabGoal],
+          ["Личная помощь", profile.needHelp]
+        ].filter(row => row[1]).map(row => `<div><span>${h(row[0])}</span><strong>${h(row[1])}</strong></div>`).join("") || `<div><span>Анкета</span><strong>ещё не заполнена</strong></div>`}
       </div>
     </section>
 
-    <section class="section card pro-card">
-      <div class="pro-art">🌿</div>
-      <div class="pro-content">
-        <h3 class="pro-title">Сустав<span>+</span> Start</h3>
-        <p>Полный маршрут 30 дней. Сейчас тестовый доступ без оплаты.</p>
-        <button class="primary-btn" data-open-program="30">Открыть полный доступ</button>
+    <section class="section">
+      <div class="section-head"><h3>Рекомендованные разделы</h3></div>
+      <div class="path-grid secondary-grid">
+        ${nextBestScreens().map(item => routeButtonHtml(item, "path-card")).join("")}
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head"><h3>Ваши инструменты</h3></div>
+      <div class="list">
+        <button class="list-item" data-nav="tracker"><span class="icon">▧</span><span><strong>Трекер боли</strong><div class="meta">дневник самочувствия</div></span><span class="chev">›</span></button>
+        <button class="list-item" data-nav="team"><span class="icon">👥</span><span><strong>Моя команда</strong><div class="meta">хирург, реабилитолог, нутрициолог, осмотр</div></span><span class="chev">›</span></button>
+        <button class="list-item" data-nav="nutrition"><span class="icon olive">🥗</span><span><strong>Питание и вес</strong><div class="meta">Виктория, вес, белок, восстановление</div></span><span class="chev">›</span></button>
+        <button class="list-item" data-nav="questions"><span class="icon olive">?</span><span><strong>Вопросы врачу</strong><div class="meta">готовый список для консультации</div></span><span class="chev">›</span></button>
+        <button class="list-item" data-nav="links"><span class="icon">🔗</span><span><strong>Каналы и ссылки</strong><div class="meta">Telegram, YouTube, VK, сайт, чат</div></span><span class="chev">›</span></button>
       </div>
     </section>
 
@@ -2030,11 +2258,9 @@ function renderProfile() {
       <div class="section-head" style="margin-left:0"><h3>Реферальный источник</h3></div>
       <p class="subtitle" style="margin-left:0">Источник входа: <strong>${h(sourceText)}</strong></p>
       <p class="mini-line">Технический параметр: <strong>${h(source)}</strong></p>
-      <div class="notice olive">Для основного запуска можно давать ссылку с источником: <strong>?startapp=newsustav</strong>. Для видео: <strong>?startapp=youtube</strong>. Для врачей: <strong>?startapp=elkin</strong>, <strong>?startapp=savinkov</strong>, <strong>?startapp=karpovich</strong>.</div>
     </section>
   `;
 }
-
 
 function renderOnboarding() {
   return `
@@ -2057,30 +2283,82 @@ function renderOnboarding() {
 }
 
 function renderIntake() {
+  const completed = isProfileComplete();
+  const stage = stageKey();
   return `
-    ${topScreen("Анкета", "персональный старт")}
-    <section class="section" style="margin-top:0"><div class="notice">Анкета нужна, чтобы приложение показывало этап, ограничения и подсказки более осознанно. Пока всё хранится локально на устройстве.</div></section>
-    <section class="section card pad">
-      <label class="field-label">Имя / как обращаться</label>
-      <input class="input" data-profile="name" value="${h(profile.name || "")}" placeholder="Пациент" />
-      ${intakeFields.map(field => {
-        const value = profile[field.id] || "";
-        if (field.type === "select") return `
-          <label class="field-label">${h(field.label)}</label>
-          <select class="input" data-profile="${field.id}">${field.options.map(opt => `<option value="${h(opt)}" ${value === opt ? "selected" : ""}>${h(opt)}</option>`).join("")}</select>
-        `;
-        if (field.type === "textarea") return `
-          <label class="field-label">${h(field.label)}</label>
-          <textarea class="textarea" data-profile="${field.id}" placeholder="${h(field.placeholder || "")}">${h(value)}</textarea>
-        `;
-        return `
-          <label class="field-label">${h(field.label)}</label>
-          <input class="input" data-profile="${field.id}" value="${h(value)}" type="${field.type}" placeholder="${h(field.placeholder || "")}" />
-        `;
-      }).join("")}
-      <button class="primary-btn" data-save-profile>Сохранить анкету</button>
+    ${backRow(completed ? "В профиль" : "На главную", completed ? "profile" : "home")}
+    ${topScreen("Анкета маршрута", "персональный старт Сустав+")}
+
+    <section class="card hero soft intake-hero">
+      <div>
+        <span class="badge ${completed ? "olive" : "rose"}">${completed ? "можно изменить" : "первый вход"}</span>
+        <h2>Давайте настроим ваш маршрут</h2>
+        <p>Анкета помогает приложению понять ваш этап: до операции, первые дни, долгий срок с протезом, питание, ЛФК или подготовка дома.</p>
+        <div class="profile-progress"><span style="width:${profileCompletionPercent()}%"></span></div>
+        <small class="profile-progress-text">Заполнение профиля: ${profileCompletionPercent()}%</small>
+      </div>
+      <div class="hero-art" aria-hidden="true"></div>
     </section>
+
+    <section class="section" style="margin-top:0">
+      <div class="notice olive"><strong>Как это работает:</strong> после анкеты главный экран станет персональнее. Данные пока хранятся локально на устройстве и дополнительно отправляются в аналитику только как продуктовые события без медицинских назначений.</div>
+    </section>
+
+    <section class="section card pad mature-intake">
+      <div class="section-head" style="margin-left:0"><h3>1. Основное</h3><span class="badge rose">обязательно</span></div>
+      <label class="field-label">Имя / как обращаться</label>
+      <input class="input" data-profile="name" value="${h(profile.name || "")}" placeholder="Например: Александр" />
+
+      ${intakeFields.slice(0, 3).map(field => renderProfileField(field)).join("")}
+    </section>
+
+    <section class="section card pad mature-intake">
+      <div class="section-head" style="margin-left:0"><h3>2. Опора и ситуация</h3><span class="badge olive">маршрут</span></div>
+      ${intakeFields.slice(3, 7).map(field => renderProfileField(field)).join("")}
+    </section>
+
+    <section class="section card pad mature-intake">
+      <div class="section-head" style="margin-left:0"><h3>3. Что вам нужно сейчас</h3><span class="badge olive">приоритеты</span></div>
+      ${intakeFields.slice(7).map(field => renderProfileField(field)).join("")}
+    </section>
+
+    <section class="section card route-preview">
+      <div class="section-head" style="margin-left:0"><h3>Предварительный маршрут</h3><span class="badge gray">${h(stage)}</span></div>
+      ${routeButtonHtml(recommendedRoute(), "stage-card")}
+      <div class="path-grid secondary-grid" style="margin-top:12px">
+        ${nextBestScreens().slice(0, 3).map(item => routeButtonHtml(item, "path-card")).join("")}
+      </div>
+    </section>
+
+    <section class="section card action-card">
+      <h3>${completed ? "Обновить анкету" : "Сохранить и открыть маршрут"}</h3>
+      <p>После сохранения приложение запомнит профиль на этом устройстве и покажет подходящий раздел первым.</p>
+      <div class="cta-row">
+        <button class="primary-btn" data-save-profile>${completed ? "Сохранить изменения" : "Сохранить анкету"}</button>
+        ${!completed ? `<button class="secondary-btn" data-skip-intake>Заполнить позже</button>` : `<button class="secondary-btn" data-nav="profile">Вернуться в профиль</button>`}
+      </div>
+    </section>
+
     <section class="section"><div class="notice olive"><strong>Текущий профиль:</strong> ${h(profileSummary())}</div></section>
+  `;
+}
+
+function renderProfileField(field) {
+  const value = profile[field.id] || "";
+  const required = field.required ? `<span class="required-dot">обязательно</span>` : "";
+  if (field.type === "select") return `
+    <label class="field-label">${h(field.label)} ${required}</label>
+    <select class="input" data-profile="${field.id}">
+      ${field.options.map(opt => `<option value="${h(opt)}" ${value === opt ? "selected" : ""}>${h(opt)}</option>`).join("")}
+    </select>
+  `;
+  if (field.type === "textarea") return `
+    <label class="field-label">${h(field.label)} ${required}</label>
+    <textarea class="textarea" data-profile="${field.id}" placeholder="${h(field.placeholder || "")}">${h(value)}</textarea>
+  `;
+  return `
+    <label class="field-label">${h(field.label)} ${required}</label>
+    <input class="input" data-profile="${field.id}" value="${h(value)}" type="${field.type}" placeholder="${h(field.placeholder || "")}" />
   `;
 }
 
@@ -2583,7 +2861,8 @@ function renderMemos() {
 function render() {
   const app = document.getElementById("app");
   let body = "";
-  if (state.screen === "home") body = renderHome();
+  if (state.screen === "home" && shouldShowIntakeFirst()) body = renderIntake();
+  else if (state.screen === "home") body = renderHome();
   if (state.screen === "route") body = renderRoute();
   if (state.screen === "exercises") body = renderExercises();
   if (state.screen === "exercise") body = renderExerciseDetail();
@@ -2747,12 +3026,44 @@ function bindEvents(root) {
   });
   const saveProfile = root.querySelector("[data-save-profile]");
   if (saveProfile) saveProfile.addEventListener("click", () => {
+    const wasComplete = isProfileComplete();
     profile.stage = profile.stage || profile["stage"] || "1–14 день после операции";
-    if (profile.stage && !String(profile.stage).includes("Неделя")) profile.stage = profile.stage;
     profile.operation = profile.joint || profile.operation;
+    profile.profileCompleted = true;
+    profile.profileSkipped = false;
+    profile.profileCompletedAt = profile.profileCompletedAt || new Date().toISOString();
     store.set("sustav_profile", profile);
-    trackEvent("profile_save", { joint: profile.joint, stage: profile.stage, daysAfter: profile.daysAfter, support: profile.support });
-    setScreen("route");
+    store.set("sustav_profile_completed", true);
+    store.set("sustav_profile_skip", false);
+    const eventName = wasComplete ? "profile_updated" : "profile_created";
+    trackEvent(eventName, {
+      joint: profile.joint,
+      stage: profile.stage,
+      daysAfter: profile.daysAfter,
+      support: profile.support,
+      mainGoal: profile.mainGoal,
+      nutritionGoal: profile.nutritionGoal,
+      rehabGoal: profile.rehabGoal,
+      needHelp: profile.needHelp,
+      operationDate: profile.operationDate
+    });
+    const route = recommendedRoute();
+    if (route.program) {
+      state.program = route.program;
+      state.day = Math.min(Number(profile.daysAfter || 1) || 1, route.program);
+      setScreen("route");
+    } else {
+      setScreen(route.screen || "home");
+    }
+  });
+  root.querySelectorAll("[data-skip-intake]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      profile.profileSkipped = true;
+      store.set("sustav_profile", profile);
+      store.set("sustav_profile_skip", true);
+      trackEvent("profile_skip", { from: state.screen });
+      setScreen("home");
+    });
   });
   root.querySelectorAll("[data-team-index]").forEach(input => {
     input.addEventListener("input", () => {
