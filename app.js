@@ -3,7 +3,7 @@
   Static Telegram Mini App prototype: no backend, no payments, data saved in localStorage.
 */
 
-const APP_VERSION = "1.9-training-intensity";
+const APP_VERSION = "2.0-intake-boost";
 const AI_API_URL = "/api/assistant"; // позже подключим Vercel Serverless Function + OpenAI API
 
 const medicalDisclaimer = "Материалы внутри приложения — образовательный маршрут и чек-листы. Они не заменяют врача, хирурга или реабилитолога. Ограничения после операции зависят от доступа, импланта, сопутствующих диагнозов и индивидуальных назначений.";
@@ -1728,7 +1728,7 @@ function bottomNav() {
     ["daily", "☀", "Режим"],
     ["tracker", "▧", "Трекер"],
     ["assistant", "AI", "AI"],
-    ["profile", "◉", "Профиль"]
+    ["profile", "◉", "Мой путь"]
   ];
   return `
     <nav class="bottom-nav">
@@ -1770,7 +1770,7 @@ function renderHome() {
           <h2>${h(profile.name || "Ваш")} маршрут</h2>
           <p>${h(profileSummary())}</p>
           <div class="profile-progress"><span style="width:${profileCompletionPercent()}%"></span></div>
-          <small class="profile-progress-text">Профиль заполнен на ${profileCompletionPercent()}%</small>
+          <small class="profile-progress-text">Мой путь заполнен на ${profileCompletionPercent()}%</small>
         </div>
         <div class="hero-art" aria-hidden="true"></div>
       </section>
@@ -1830,7 +1830,7 @@ function renderHome() {
         <button class="quick-btn" data-nav="tracker">▧ Трекер</button>
         <button class="quick-btn" data-nav="nutrition">🥗 Питание</button>
         <button class="quick-btn strong" data-nav="concierge">🏠 Дом готов</button>
-        <button class="quick-btn" data-nav="profile">◉ Профиль</button>
+        <button class="quick-btn" data-nav="profile">◉ Мой путь</button>
       </div>
     </section>
 
@@ -2217,6 +2217,8 @@ function renderRoute() {
       <div class="progress-art" aria-hidden="true"></div>
     </section>
 
+    ${renderGeneralRouteNotice()}
+
     ${renderDayExercises(day)}
 
     ${renderPremiumGuideCards("route")}
@@ -2527,7 +2529,7 @@ function renderProfile() {
   const sourceText = sourceLabel(source);
   const route = recommendedRoute();
   return `
-    ${topScreen("Профиль", "анкета и персональный маршрут")}
+    ${topScreen("Мой путь", "анкета и персональный маршрут")}
 
     <section class="card profile-card profile-card-v17">
       <div class="avatar">${isProfileComplete() ? "✓" : "?"}</div>
@@ -2535,7 +2537,7 @@ function renderProfile() {
         <strong style="font-size:20px">${h(profile.name || "Пациент")}</strong>
         <div class="subtitle" style="margin-top:2px">${h(profileSummary())}</div>
         <div class="profile-progress"><span style="width:${profileCompletionPercent()}%"></span></div>
-        <small class="profile-progress-text">Профиль заполнен на ${profileCompletionPercent()}%</small>
+        <small class="profile-progress-text">Мой путь заполнен на ${profileCompletionPercent()}%</small>
       </div>
     </section>
 
@@ -2628,7 +2630,7 @@ function renderIntake() {
   const completed = isProfileComplete();
   const stage = stageKey();
   return `
-    ${backRow(completed ? "В профиль" : "На главную", completed ? "profile" : "home")}
+    ${backRow(completed ? "В мой путь" : "На главную", completed ? "profile" : "home")}
     ${topScreen("Анкета маршрута", "персональный старт Сустав+")}
 
     <section class="card hero soft intake-hero">
@@ -2637,7 +2639,7 @@ function renderIntake() {
         <h2>Давайте настроим ваш маршрут</h2>
         <p>Анкета помогает приложению понять ваш этап: до операции, первые дни, долгий срок с протезом, питание, ЛФК или подготовка дома.</p>
         <div class="profile-progress"><span style="width:${profileCompletionPercent()}%"></span></div>
-        <small class="profile-progress-text">Заполнение профиля: ${profileCompletionPercent()}%</small>
+        <small class="profile-progress-text">Заполнение моего пути: ${profileCompletionPercent()}%</small>
       </div>
       <div class="hero-art" aria-hidden="true"></div>
     </section>
@@ -2677,16 +2679,16 @@ function renderIntake() {
 
     <section class="section card action-card">
       <h3>${completed ? "Обновить анкету" : "Сохранить и открыть маршрут"}</h3>
-      <p>После сохранения приложение запомнит профиль на этом устройстве и покажет подходящий раздел первым.</p>
+      <p>После сохранения приложение запомнит мой путь на этом устройстве и покажет подходящий раздел первым.</p>
       <div class="cta-row">
         <button class="primary-btn" data-save-profile>${completed ? "Сохранить изменения" : "Сохранить анкету"}</button>
-        ${!completed ? `<button class="secondary-btn" data-skip-intake>Заполнить позже</button>` : `<button class="secondary-btn" data-nav="profile">Вернуться в профиль</button>`}
+        ${!completed ? `<button class="secondary-btn" data-skip-intake>Заполнить позже</button>` : `<button class="secondary-btn" data-nav="profile">Вернуться в мой путь</button>`}
       </div>
     </section>
 
     ${renderPremiumGuideCards("intake")}
 
-    <section class="section"><div class="notice olive"><strong>Текущий профиль:</strong> ${h(profileSummary())}</div></section>
+    <section class="section"><div class="notice olive"><strong>Текущий мой путь:</strong> ${h(profileSummary())}</div></section>
   `;
 }
 
@@ -3427,6 +3429,7 @@ function bindEvents(root) {
       consentProfile: profile.consentProfile,
       profileCompletedAt: profile.profileCompletedAt
     });
+    state.screen = "route-ready";
     const route = recommendedRoute();
     if (route.program) {
       state.program = route.program;
