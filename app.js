@@ -3,7 +3,7 @@
   Static Telegram Mini App prototype: no backend, no payments, data saved in localStorage.
 */
 
-const APP_VERSION = "1.7.2-route-day-exercises";
+const APP_VERSION = "1.8-premium-guides";
 const AI_API_URL = "/api/assistant"; // позже подключим Vercel Serverless Function + OpenAI API
 
 const medicalDisclaimer = "Материалы внутри приложения — образовательный маршрут и чек-листы. Они не заменяют врача, хирурга или реабилитолога. Ограничения после операции зависят от доступа, импланта, сопутствующих диагнозов и индивидуальных назначений.";
@@ -944,6 +944,81 @@ const rhythmItems = [
   { id: "water", icon: "💧", title: "Вода", text: "Пить равномерно, если нет ограничений врача." },
   { id: "mood", icon: "📝", title: "Самочувствие", text: "Коротко отметить боль, усталость или настроение." }
 ];
+
+
+const premiumGuides = {
+  nutrition: {
+    title: "PDF-гайд по нутритивной поддержке",
+    subtitle: "для периода до/после операции",
+    price: "3 999 ₽",
+    author: "Составила нутрициолог проекта Виктория Клочихина",
+    contact: "@victoriaklochikhina",
+    url: "https://t.me/victoriaklochikhina",
+    trackKey: "premium_nutrition_victoria",
+    icon: "🥗",
+    points: [
+      "белок и коллаген как поддержка восстановления тканей",
+      "витамин D и K2: что проверить и обсудить со специалистом",
+      "омега-3 и противовоспалительный рацион",
+      "магний, сон, стресс и поддержка нервной системы",
+      "железо, ферритин, слабость и восстановление энергии",
+      "стул, вода, отёки и питание без жёстких диет"
+    ],
+    safety: "Это образовательный PDF, а не назначение. Индивидуальный подбор добавок — только после анализа ситуации, препаратов, анализов и рекомендаций врача."
+  },
+  rehab: {
+    title: "PDF-гайд ЛФК и упражнения с резинками",
+    subtitle: "для безопасного поддержания движения",
+    price: "3 999 ₽",
+    author: "Гайд по ЛФК от реабилитолога Антона",
+    contact: "@Vtaly88",
+    url: "https://t.me/Vtaly88",
+    trackKey: "premium_rehab_anton",
+    icon: "🏋️",
+    points: [
+      "упражнения для поддержания формы после базового восстановления",
+      "мягкая работа с резинками без гонки за рекордами",
+      "как увеличивать нагрузку постепенно",
+      "частые ошибки в технике",
+      "мини-ролики/видео с упражнениями",
+      "когда остановиться и согласовать нагрузку с врачом"
+    ],
+    safety: "Гайд не заменяет очную реабилитацию и назначения хирурга. Нагрузка подбирается с учётом этапа, боли, опоры и разрешений врача."
+  }
+};
+
+function renderPremiumGuideCards(context = "common") {
+  const items = [premiumGuides.nutrition, premiumGuides.rehab];
+  return `
+    <section class="section premium-guides-block" data-premium-context="${h(context)}">
+      <div class="section-head">
+        <h3>Платные гайды для тех, кому нужен следующий шаг</h3>
+        <span class="badge rose">по 3 999 ₽</span>
+      </div>
+      <div class="notice olive"><strong>Можно бесплатно:</strong> остаться в приложении, проходить маршрут и делать базовые упражнения самостоятельно. Гайды — для тех, кто хочет более собранный PDF-маршрут и связь со специалистом.</div>
+      <div class="premium-grid">
+        ${items.map(item => `
+          <article class="card premium-card">
+            <div class="premium-top">
+              <span class="premium-icon">${h(item.icon)}</span>
+              <div>
+                <h3>${h(item.title)}</h3>
+                <small>${h(item.subtitle)}</small>
+              </div>
+            </div>
+            <div class="price-line">${h(item.price)}</div>
+            <p class="premium-author">${h(item.author)}</p>
+            <ul class="premium-points">
+              ${item.points.map(point => `<li>${h(point)}</li>`).join("")}
+            </ul>
+            <div class="premium-safety">${h(item.safety)}</div>
+            <a class="primary-btn as-link full-width" href="${h(item.url)}" target="_blank" rel="noopener" data-track-link="${h(item.trackKey)}">Получить гайд — написать ${h(item.contact)}</a>
+          </article>
+        `).join("")}
+      </div>
+    </section>
+  `;
+}
 
 const recoveryConcierge = {
   title: "Дом готов к операции",
@@ -1929,6 +2004,8 @@ function renderRoute() {
 
     ${renderDayExercises(day)}
 
+    ${renderPremiumGuideCards("route")}
+
     <section class="section">
       <div class="section-head"><h3>Выбор дня</h3><span class="badge gray">готово: ${doneDays}/${program.id}</span></div>
       <div class="path-grid">
@@ -2001,6 +2078,8 @@ function renderExercises() {
         `).join("")}
       </div>
     </section>
+
+    ${renderPremiumGuideCards("exercises")}
   `;
 }
 
@@ -2390,6 +2469,8 @@ function renderIntake() {
       </div>
     </section>
 
+    ${renderPremiumGuideCards("intake")}
+
     <section class="section"><div class="notice olive"><strong>Текущий профиль:</strong> ${h(profileSummary())}</div></section>
   `;
 }
@@ -2589,6 +2670,8 @@ function renderNutrition() {
         </div>
       </div>
     </section>
+
+    ${renderPremiumGuideCards("nutrition")}
 
     <section class="section"><div class="notice"><strong>Важно:</strong> питание и добавки не заменяют врача. При осложнениях, температуре, боли в груди, одышке, резком отёке или проблемах со швом — обращаться к медицинской команде.</div></section>
   `;

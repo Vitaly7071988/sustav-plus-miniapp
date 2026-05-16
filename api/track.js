@@ -1,8 +1,5 @@
-// Сустав+ Analytics endpoint v1.6 — Google Sheets ready
-// Receives frontend events and optionally forwards them to:
-// 1) Google Sheets / Make / Zapier webhook: GOOGLE_SHEETS_WEBHOOK_URL or ANALYTICS_WEBHOOK_URL
-// 2) Telegram admin chat: TELEGRAM_BOT_TOKEN + ANALYTICS_CHAT_ID
-// No personal medical data is required. Keep analytics focused on product behavior.
+// Сустав+ Analytics endpoint v1.7.3 — Google Sheets debug
+// Receives frontend events and forwards them to Google Sheets webhook if GOOGLE_SHEETS_WEBHOOK_URL is set.
 
 const DEFAULT_TELEGRAM_EVENTS = new Set([
   'app_open',
@@ -10,7 +7,9 @@ const DEFAULT_TELEGRAM_EVENTS = new Set([
   'exercise_open',
   'tracker_save',
   'assistant_ask',
-  'external_click'
+  'external_click',
+  'profile_created',
+  'profile_updated'
 ]);
 
 function safeString(value, max = 220) {
@@ -46,6 +45,47 @@ function pickEvent(body) {
   };
 }
 
+function getWebhookUrl() {
+  return process.env.GOOGLE_SHEETS_WEBHOOK_URL || process.env.ANALYTICS_WEBHOOK_URL || '';
+}
+
+async function forwardToWebhook(event) {
+  const url = getWebhookUrl();
+
+  if (!url) {
+    return {
+      skipped: true,
+      envPresent: false,
+      reason: 'GOOGLE_SHEETS_WEBHOOK_URL / ANALYTICS_WEBHOOK_URL is not set'
+    };
+  }
+
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(event)
+    });
+
+    let text = '';
+    try { text = await response.text(); } catch (_) {}
+
+    return {
+      ok: response.ok,
+      status: response.status,
+      envPresent: true,
+      target: process.env.GOOGLE_SHEETS_WEBHOOK_URL ? 'GOOGLE_SHEETS_WEBHOOK_URL' : 'ANALYTICS_WEBHOOK_URL',
+      response: text.slice(0, 500)
+    };
+  } catch (error) {
+    return {
+      ok: false,
+      envPresent: true,
+      error: String(error?.message || error)
+    };
+  }
+}
+
 function shouldSendToTelegram(eventName) {
   const setting = process.env.ANALYTICS_TELEGRAM_EVENTS || '';
   if (setting.trim().toLowerCase() === 'all') return true;
@@ -53,27 +93,6 @@ function shouldSendToTelegram(eventName) {
     return setting.split(',').map(x => x.trim()).filter(Boolean).includes(eventName);
   }
   return DEFAULT_TELEGRAM_EVENTS.has(eventName);
-}
-
-async function forwardToWebhook(event) {
-  const url = process.env.GOOGLE_SHEETS_WEBHOOK_URL || process.env.ANALYTICS_WEBHOOK_URL;
-  if (!url) return { skipped: true, reason: 'GOOGLE_SHEETS_WEBHOOK_URL / ANALYTICS_WEBHOOK_URL is not set' };
-
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(event)
-  });
-
-  let text = '';
-  try { text = await response.text(); } catch (_) {}
-
-  return {
-    ok: response.ok,
-    status: response.status,
-    target: process.env.GOOGLE_SHEETS_WEBHOOK_URL ? 'google_sheets' : 'analytics_webhook',
-    response: text.slice(0, 240)
-  };
 }
 
 async function notifyTelegram(event) {
@@ -96,16 +115,20 @@ async function notifyTelegram(event) {
     `Время: ${event.time}`
   ].filter(Boolean);
 
-  const response = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      chat_id: chatId,
-      text: lines.join('\n'),
-      disable_web_page_preview: true
-    })
-  });
-  return { ok: response.ok, status: response.status };
+  try {
+    const response = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chat_id: chatId,
+        text: lines.join('\n'),
+        disable_web_page_preview: true
+      })
+    });
+    return { ok: response.ok, status: response.status };
+  } catch (error) {
+    return { ok: false, error: String(error?.message || error) };
+  }
 }
 
 export default async function handler(req, res) {
@@ -122,18 +145,24 @@ export default async function handler(req, res) {
 
   try {
     const event = pickEvent(req.body || {});
-    console.log('[sustav-analytics]', JSON.stringify(event));
+    console.log('[sustav-analytics-event]', JSON.stringify({
+      event: event.event,
+      screen: event.screen,
+      appVersion: event.appVersion,
+      envPresent: !!getWebhookUrl()
+    }));
 
-    const [webhook, telegram] = await Promise.allSettled([
-      forwardToWebhook(event),
-      notifyTelegram(event)
-    ]);
+    const webhook = await forwardToWebhook(event);
+    console.log('[sustav-webhook-result]', JSON.stringify(webhook));
+
+    const telegram = await notifyTelegram(event);
+    console.log('[sustav-telegram-result]', JSON.stringify(telegram));
 
     return res.status(200).json({
       ok: true,
       received: event.event,
-      webhook: webhook.status === 'fulfilled' ? webhook.value : { error: String(webhook.reason) },
-      telegram: telegram.status === 'fulfilled' ? telegram.value : { error: String(telegram.reason) }
+      webhook,
+      telegram
     });
   } catch (error) {
     console.error('[sustav-analytics-error]', error);

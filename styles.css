@@ -1295,3 +1295,99 @@ body {
 .day-exercise-item .check-dot {
   min-width: 28px;
 }
+
+
+/* v1.8 premium PDF guides */
+.premium-guides-block {
+  margin-top: 18px;
+}
+.premium-grid {
+  display: grid;
+  gap: 14px;
+}
+.premium-card {
+  padding: 18px;
+  background:
+    radial-gradient(circle at 92% 10%, rgba(154,160,106,.16), transparent 28%),
+    linear-gradient(135deg, rgba(255,252,247,.96), rgba(248,226,219,.48));
+}
+.premium-top {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+.premium-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 16px;
+  display: grid;
+  place-items: center;
+  background: rgba(248,226,219,.8);
+  font-size: 22px;
+  flex: 0 0 auto;
+}
+.premium-top h3 {
+  margin: 0;
+  font-size: 20px;
+  line-height: 1.16;
+  letter-spacing: -.02em;
+}
+.premium-top small {
+  display: block;
+  margin-top: 5px;
+  color: var(--muted);
+  line-height: 1.35;
+}
+.price-line {
+  margin: 14px 0 8px;
+  display: inline-flex;
+  padding: 9px 13px;
+  border-radius: 999px;
+  background: rgba(154,160,106,.14);
+  color: var(--olive);
+  font-size: 18px;
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+}
+.premium-author {
+  margin: 0 0 12px;
+  color: var(--text);
+  font-weight: 800;
+  line-height: 1.35;
+}
+.premium-points {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 8px;
+}
+.premium-points li {
+  position: relative;
+  padding-left: 24px;
+  color: var(--text);
+  font-size: 13.5px;
+  line-height: 1.42;
+}
+.premium-points li::before {
+  content: "✓";
+  position: absolute;
+  left: 0;
+  top: 0;
+  color: var(--olive);
+  font-weight: 900;
+}
+.premium-safety {
+  margin: 14px 0;
+  padding: 12px;
+  border-radius: 16px;
+  background: rgba(255,252,247,.78);
+  color: var(--muted);
+  font-size: 12.5px;
+  line-height: 1.45;
+  border: 1px solid rgba(185,111,102,.12);
+}
+.full-width {
+  width: 100%;
+  justify-content: center;
+}
