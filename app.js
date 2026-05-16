@@ -3,7 +3,7 @@
   Static Telegram Mini App prototype: no backend, no payments, data saved in localStorage.
 */
 
-const APP_VERSION = "1.8-premium-guides";
+const APP_VERSION = "1.9-training-intensity";
 const AI_API_URL = "/api/assistant"; // позже подключим Vercel Serverless Function + OpenAI API
 
 const medicalDisclaimer = "Материалы внутри приложения — образовательный маршрут и чек-листы. Они не заменяют врача, хирурга или реабилитолога. Ограничения после операции зависят от доступа, импланта, сопутствующих диагнозов и индивидуальных назначений.";
@@ -1353,7 +1353,8 @@ const state = {
   assistantQuestion: "",
   assistantAnswer: "",
   lastSaved: null,
-  ref: "direct"
+  ref: "direct",
+  trainingIntensity: store.get("sustav_training_intensity", "light")
 };
 
 const completed = store.get("sustav_completed", {});
@@ -1851,11 +1852,118 @@ function renderHome() {
   `;
 }
 
+
+const trainingIntensityOptions = {
+  light: {
+    label: "Лёгкая",
+    short: "по умолчанию",
+    icon: "🌿",
+    description: "минимальная безопасная нагрузка, если есть сомнения, усталость или откат",
+    rule: "1 подход, меньше повторений, больше пауз"
+  },
+  medium: {
+    label: "Средняя",
+    short: "если всё спокойно",
+    icon: "⚖️",
+    description: "чуть больше повторений и упражнений, если боль не усиливается на следующий день",
+    rule: "2 подхода, контроль техники и дыхания"
+  },
+  strong: {
+    label: "Усиленная",
+    short: "только при хорошем самочувствии",
+    icon: "🔥",
+    description: "не геройство, а аккуратное усиление: больше подходов, ходьбы и контроля",
+    rule: "2–3 подхода, только если разрешено и нет красных флагов"
+  }
+};
+
+function normalizedIntensity(value) {
+  return trainingIntensityOptions[value] ? value : "light";
+}
+
+function currentTrainingIntensity(dayNumber) {
+  if (dayNumber < 15) return "light";
+  return normalizedIntensity(state.trainingIntensity || "light");
+}
+
+function trainingIntensityLabel(value) {
+  const key = normalizedIntensity(value);
+  return trainingIntensityOptions[key].label;
+}
+
+function exerciseDose(id, dayNumber, intensity) {
+  const key = currentTrainingIntensity(dayNumber);
+  if (dayNumber < 15) return "";
+
+  const dose = {
+    light: {
+      "morning-breath": "2–3 минуты",
+      "evening-breath": "3–5 минут",
+      "breathing": "2–3 минуты",
+      "quad-set": "1×8 повторений",
+      "glute-set": "1×8 повторений",
+      "heel-slide": "1×6–8 повторений",
+      "abduction-slide": "1×6 повторений",
+      "sit-stand": "1×5 повторений",
+      "walking": "5–7 минут с паузами",
+      "standing-abduction": "1×6 на сторону",
+      "work-microbreak": "2 минуты мягко",
+      "relaxation": "3–5 минут",
+      "ice-rest": "10 минут при отёке",
+      "stairs-prep": "только по разрешению"
+    },
+    medium: {
+      "morning-breath": "3 минуты",
+      "evening-breath": "5 минут",
+      "breathing": "3 минуты",
+      "quad-set": "2×8 повторений",
+      "glute-set": "2×8 повторений",
+      "heel-slide": "2×8 повторений",
+      "abduction-slide": "2×8 повторений",
+      "sit-stand": "2×5 повторений",
+      "walking": "8–12 минут с паузами",
+      "standing-abduction": "2×8 на сторону",
+      "work-microbreak": "3 минуты",
+      "relaxation": "5 минут",
+      "ice-rest": "10–15 минут при реакции",
+      "stairs-prep": "1–2 спокойных подхода, если разрешено"
+    },
+    strong: {
+      "morning-breath": "3–5 минут",
+      "evening-breath": "5 минут",
+      "breathing": "3 минуты",
+      "quad-set": "2–3×10 повторений",
+      "glute-set": "2–3×10 повторений",
+      "heel-slide": "2×10 повторений",
+      "abduction-slide": "2×10 повторений",
+      "sit-stand": "2×8 повторений",
+      "walking": "12–15 минут, без потери техники",
+      "standing-abduction": "2×10 на сторону",
+      "work-microbreak": "4 минуты",
+      "relaxation": "5 минут",
+      "ice-rest": "по реакции тканей",
+      "stairs-prep": "только после разрешения врача/реабилитолога"
+    }
+  };
+
+  return (dose[key] && dose[key][id]) || "";
+}
+
+function dayLoadMessage(dayNumber) {
+  if (dayNumber < 15) {
+    return "До 15 дня приложение держит лёгкий режим: сейчас важнее безопасность, чем усиление нагрузки.";
+  }
+  const option = trainingIntensityOptions[currentTrainingIntensity(dayNumber)];
+  return `${option.icon} ${option.label}: ${option.rule}. ${option.description}.`;
+}
+
 function exerciseById(id) {
   return exercises.find(ex => ex.id === id);
 }
 
-function dayWorkoutPlan(dayNumber) {
+function dayWorkoutPlan(dayNumber, intensity = currentTrainingIntensity(dayNumber)) {
+  const key = dayNumber < 15 ? "light" : normalizedIntensity(intensity);
+
   if (dayNumber <= 1) return [
     { title: "Утро", note: "мягко включить тело", ids: ["morning-breath", "ankle-pumps"] },
     { title: "Днём", note: "кровообращение и безопасность", ids: ["breathing", "ankle-pumps"] },
@@ -1886,33 +1994,103 @@ function dayWorkoutPlan(dayNumber) {
     { title: "Днём", note: "движение без перегруза", ids: ["sit-stand", "heel-slide", "walking"] },
     { title: "Вечер", note: "контроль реакции", ids: ["relaxation", "ice-rest"] }
   ];
-  if (dayNumber <= 17) return [
-    { title: "Утро", note: "мягкая сила", ids: ["morning-breath", "quad-set", "glute-set"] },
-    { title: "Днём", note: "шаг и опора", ids: ["sit-stand", "walking", "standing-abduction"] },
-    { title: "Вечер", note: "расслабление", ids: ["evening-breath", "relaxation"] }
-  ];
-  if (dayNumber <= 21) return [
-    { title: "Утро", note: "разбудить тело", ids: ["morning-breath", "work-microbreak", "quad-set"] },
-    { title: "Днём", note: "выносливость", ids: ["walking", "sit-stand", "abduction-slide"] },
-    { title: "Вечер", note: "отдых после дня", ids: ["relaxation", "ice-rest"] }
-  ];
-  if (dayNumber <= 24) return [
-    { title: "Утро", note: "техника и стабильность", ids: ["morning-breath", "quad-set", "glute-set"] },
-    { title: "Днём", note: "контроль движения", ids: ["walking", "sit-stand", "standing-abduction"] },
-    { title: "Вечер", note: "нервная система", ids: ["evening-breath", "relaxation"] }
-  ];
-  if (dayNumber <= 27) return [
-    { title: "Утро", note: "активный старт", ids: ["morning-breath", "work-microbreak", "glute-set"] },
-    { title: "Днём", note: "бытовая самостоятельность", ids: ["walking", "sit-stand", "abduction-slide"] },
-    { title: "Вечер", note: "восстановление", ids: ["relaxation", "ice-rest"] }
-  ];
-  return [
-    { title: "Утро", note: "финальная неделя", ids: ["morning-breath", "quad-set", "glute-set"] },
-    { title: "Днём", note: "собрать месяц", ids: ["walking", "sit-stand", "work-microbreak"] },
-    { title: "Вечер", note: "итоги и спокойствие", ids: ["evening-breath", "relaxation"] }
-  ];
-}
 
+  const phase = dayNumber <= 17 ? "15–17"
+    : dayNumber <= 21 ? "18–21"
+    : dayNumber <= 24 ? "22–24"
+    : dayNumber <= 27 ? "25–27"
+    : "28–30";
+
+  const plans = {
+    "15–17": {
+      light: [
+        { title: "Утро", note: "мягкая сила", ids: ["morning-breath", "quad-set", "glute-set"] },
+        { title: "Днём", note: "шаг и опора", ids: ["sit-stand", "walking", "standing-abduction"] },
+        { title: "Вечер", note: "расслабление", ids: ["evening-breath", "relaxation"] }
+      ],
+      medium: [
+        { title: "Утро", note: "сила + диапазон", ids: ["morning-breath", "quad-set", "glute-set", "heel-slide"] },
+        { title: "Днём", note: "больше контроля в быту", ids: ["sit-stand", "walking", "standing-abduction", "work-microbreak"] },
+        { title: "Вечер", note: "реакция тканей", ids: ["evening-breath", "relaxation", "ice-rest"] }
+      ],
+      strong: [
+        { title: "Утро", note: "усилить включение мышц", ids: ["morning-breath", "quad-set", "glute-set", "heel-slide"] },
+        { title: "Днём", note: "ходьба + устойчивость", ids: ["walking", "sit-stand", "standing-abduction", "work-microbreak"] },
+        { title: "Вечер", note: "сбросить напряжение", ids: ["relaxation", "ice-rest"] }
+      ]
+    },
+    "18–21": {
+      light: [
+        { title: "Утро", note: "разбудить тело", ids: ["morning-breath", "work-microbreak", "quad-set"] },
+        { title: "Днём", note: "выносливость", ids: ["walking", "sit-stand", "abduction-slide"] },
+        { title: "Вечер", note: "отдых после дня", ids: ["relaxation", "ice-rest"] }
+      ],
+      medium: [
+        { title: "Утро", note: "опора и ягодицы", ids: ["morning-breath", "glute-set", "standing-abduction"] },
+        { title: "Днём", note: "ходьба + вставания", ids: ["walking", "sit-stand", "work-microbreak", "abduction-slide"] },
+        { title: "Вечер", note: "восстановление", ids: ["evening-breath", "relaxation", "ice-rest"] }
+      ],
+      strong: [
+        { title: "Утро", note: "контроль таза", ids: ["morning-breath", "standing-abduction", "work-microbreak"] },
+        { title: "Днём", note: "силовая бытовая база", ids: ["walking", "sit-stand", "standing-abduction", "stairs-prep"] },
+        { title: "Вечер", note: "снять перегруз", ids: ["relaxation", "ice-rest"] }
+      ]
+    },
+    "22–24": {
+      light: [
+        { title: "Утро", note: "техника и стабильность", ids: ["morning-breath", "quad-set", "glute-set"] },
+        { title: "Днём", note: "контроль движения", ids: ["walking", "sit-stand", "standing-abduction"] },
+        { title: "Вечер", note: "нервная система", ids: ["evening-breath", "relaxation"] }
+      ],
+      medium: [
+        { title: "Утро", note: "ягодицы + устойчивость", ids: ["morning-breath", "glute-set", "standing-abduction"] },
+        { title: "Днём", note: "бытовая сила", ids: ["walking", "sit-stand", "work-microbreak", "stairs-prep"] },
+        { title: "Вечер", note: "контроль реакции", ids: ["relaxation", "ice-rest"] }
+      ],
+      strong: [
+        { title: "Утро", note: "активный контроль", ids: ["morning-breath", "standing-abduction", "work-microbreak"] },
+        { title: "Днём", note: "длиннее, но безопасно", ids: ["walking", "sit-stand", "stairs-prep", "standing-abduction"] },
+        { title: "Вечер", note: "восстановить ресурс", ids: ["evening-breath", "relaxation", "ice-rest"] }
+      ]
+    },
+    "25–27": {
+      light: [
+        { title: "Утро", note: "активный старт", ids: ["morning-breath", "work-microbreak", "glute-set"] },
+        { title: "Днём", note: "бытовая самостоятельность", ids: ["walking", "sit-stand", "abduction-slide"] },
+        { title: "Вечер", note: "восстановление", ids: ["relaxation", "ice-rest"] }
+      ],
+      medium: [
+        { title: "Утро", note: "стабильный ритм", ids: ["morning-breath", "quad-set", "standing-abduction"] },
+        { title: "Днём", note: "ходьба + контроль", ids: ["walking", "sit-stand", "work-microbreak", "stairs-prep"] },
+        { title: "Вечер", note: "мягкая разгрузка", ids: ["evening-breath", "relaxation"] }
+      ],
+      strong: [
+        { title: "Утро", note: "выносливость", ids: ["morning-breath", "work-microbreak", "standing-abduction"] },
+        { title: "Днём", note: "собрать силу и быт", ids: ["walking", "sit-stand", "stairs-prep", "standing-abduction"] },
+        { title: "Вечер", note: "контроль отёка", ids: ["relaxation", "ice-rest"] }
+      ]
+    },
+    "28–30": {
+      light: [
+        { title: "Утро", note: "финальная неделя", ids: ["morning-breath", "quad-set", "glute-set"] },
+        { title: "Днём", note: "собрать месяц", ids: ["walking", "sit-stand", "work-microbreak"] },
+        { title: "Вечер", note: "итоги и спокойствие", ids: ["evening-breath", "relaxation"] }
+      ],
+      medium: [
+        { title: "Утро", note: "ровный тонус", ids: ["morning-breath", "glute-set", "standing-abduction"] },
+        { title: "Днём", note: "ходьба + лестница", ids: ["walking", "sit-stand", "stairs-prep", "work-microbreak"] },
+        { title: "Вечер", note: "оценить реакцию", ids: ["evening-breath", "relaxation", "ice-rest"] }
+      ],
+      strong: [
+        { title: "Утро", note: "активная сборка месяца", ids: ["morning-breath", "standing-abduction", "work-microbreak"] },
+        { title: "Днём", note: "усиление без героизма", ids: ["walking", "sit-stand", "stairs-prep", "standing-abduction"] },
+        { title: "Вечер", note: "восстановление после нагрузки", ids: ["relaxation", "ice-rest"] }
+      ]
+    }
+  };
+
+  return plans[phase][key] || plans[phase].light;
+}
 
 function uniqueDayExerciseIds(dayNumber) {
   return [...new Set(dayWorkoutPlan(dayNumber).flatMap(group => group.ids))];
@@ -1932,8 +2110,10 @@ function dayExercisePreview(dayNumber) {
 }
 
 function renderDayExercises(day) {
-  const groups = dayWorkoutPlan(day.day);
+  const intensity = currentTrainingIntensity(day.day);
+  const groups = dayWorkoutPlan(day.day, intensity);
   const total = dayExerciseCount(day.day);
+  const option = trainingIntensityOptions[intensity];
   return `
     <section class="section day-exercises-section">
       <div class="section-head">
@@ -1944,10 +2124,34 @@ function renderDayExercises(day) {
       <div class="card today-workout-hero">
         <div>
           <span class="badge rose">День ${day.day}</span>
-          <h3>ЛФК встроена в маршрут</h3>
-          <p>Ниже — упражнения именно для выбранного дня: утро, день и вечер. Нажмите на карточку, чтобы открыть технику выполнения.</p>
+          <h3>Тренировка дня</h3>
+          <p>Это не просто база упражнений. Ниже — готовый комплекс на сегодня. С 15-го дня можно выбрать нагрузку: лёгкую, среднюю или усиленную.</p>
         </div>
       </div>
+
+      ${day.day >= 15 ? `
+        <div class="card intensity-card">
+          <div class="intensity-title">
+            <div>
+              <h4>Выберите нагрузку</h4>
+              <small>По умолчанию стоит лёгкая. Усиливайте только если вчера и сегодня нет ухудшения.</small>
+            </div>
+            <span class="badge olive">${h(option.label)}</span>
+          </div>
+          <div class="intensity-tabs">
+            ${Object.entries(trainingIntensityOptions).map(([key, item]) => `
+              <button class="intensity-tab ${key === intensity ? "active" : ""}" data-set-intensity="${key}">
+                <span>${item.icon}</span>
+                <strong>${h(item.label)}</strong>
+                <small>${h(item.short)}</small>
+              </button>
+            `).join("")}
+          </div>
+          <div class="intensity-message">${h(dayLoadMessage(day.day))}</div>
+        </div>
+      ` : `
+        <div class="notice olive"><strong>Режим нагрузки:</strong> ${h(dayLoadMessage(day.day))}</div>
+      `}
 
       <div class="notice olive"><strong>Безопасность:</strong> выполняйте только разрешённые упражнения. Если боль усилилась, появилась резкая боль, отёк, температура или другие красные флаги — остановитесь и свяжитесь с врачом.</div>
 
@@ -1963,15 +2167,26 @@ function renderDayExercises(day) {
                 const ex = exerciseById(id);
                 if (!ex) return "";
                 const done = isDone(exerciseKey(ex.id));
+                const dose = exerciseDose(ex.id, day.day, intensity);
                 return `<button class="day-exercise-item ${done ? "done" : ""}" data-open-exercise="${h(ex.id)}">
                   <span class="icon ${done ? "olive" : ""}">${ex.icon}</span>
-                  <span class="day-exercise-text"><strong>${h(ex.title)}</strong><small>${h(ex.duration)} • ${h(ex.level)}</small></span>
+                  <span class="day-exercise-text"><strong>${h(ex.title)}</strong><small>${h(dose || ex.duration)} • ${h(ex.level)}</small></span>
                   <span class="check-dot">${done ? "✓" : "›"}</span>
                 </button>`;
               }).join("")}
             </div>
           </article>
         `).join("")}
+      </div>
+
+      <div class="card load-hint-card">
+        <h4>Как понять, что нагрузка подходит?</h4>
+        <ul class="mini-rules">
+          <li>Боль во время занятия не становится резкой.</li>
+          <li>На следующий день нет явного отката по боли/отёку.</li>
+          <li>Техника не разваливается от усталости.</li>
+          <li>При сомнениях выбирайте лёгкую нагрузку — это нормальный режим, не “слабость”.</li>
+        </ul>
       </div>
 
       <button class="secondary-btn full-width" data-nav="exercises">Открыть всю базу упражнений ›</button>
@@ -3047,6 +3262,15 @@ function bindEvents(root) {
       state.program = Number(btn.dataset.setProgram);
       state.day = Math.min(state.day, state.program);
       trackEvent("program_open", { program: state.program, sourceButton: "set_program" });
+      render();
+    });
+  });
+  root.querySelectorAll("[data-set-intensity]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const value = normalizedIntensity(btn.dataset.setIntensity);
+      state.trainingIntensity = value;
+      store.set("sustav_training_intensity", value);
+      trackEvent("training_intensity_change", { intensity: value, day: state.day, program: state.program });
       render();
     });
   });
