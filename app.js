@@ -3,7 +3,7 @@
   Static Telegram Mini App prototype: no backend, no payments, data saved in localStorage.
 */
 
-const APP_VERSION = "2.0-intake-boost";
+const APP_VERSION = "2.1-family-support";
 const AI_API_URL = "/api/assistant"; // позже подключим Vercel Serverless Function + OpenAI API
 
 const medicalDisclaimer = "Материалы внутри приложения — образовательный маршрут и чек-листы. Они не заменяют врача, хирурга или реабилитолога. Ограничения после операции зависят от доступа, импланта, сопутствующих диагнозов и индивидуальных назначений.";
@@ -1418,6 +1418,7 @@ function nextBestScreens() {
   const key = stageKey();
   const common = [
     { title: "Красные флаги", text: "когда не ждать", screen: "safety", icon: "🚦" },
+    { title: "Близким", text: "как помочь и не сгореть", screen: "family", icon: "🤝" },
     { title: "Питание", text: "вес, белок, восстановление", screen: "nutrition", icon: "🥗" }
   ];
   if (key === "preop") return [
@@ -1830,6 +1831,7 @@ function renderHome() {
         <button class="quick-btn" data-nav="tracker">▧ Трекер</button>
         <button class="quick-btn" data-nav="nutrition">🥗 Питание</button>
         <button class="quick-btn strong" data-nav="concierge">🏠 Дом готов</button>
+        <button class="quick-btn" data-nav="family">🤝 Близким</button>
         <button class="quick-btn" data-nav="profile">◉ Мой путь</button>
       </div>
     </section>
@@ -1842,6 +1844,7 @@ function renderHome() {
         <button class="path-card" data-nav="daily"><span class="icon olive">☀</span><span><strong>Режим дня</strong><small>дыхание, вода, паузы</small></span><span class="chev">›</span></button>
         <button class="path-card" data-nav="questions"><span class="icon olive">?</span><span><strong>Вопросы врачу</strong><small>чек-лист консультации</small></span><span class="chev">›</span></button>
         <button class="path-card" data-nav="support"><span class="icon olive">♡</span><span><strong>Спокойствие</strong><small>поддержка и страхи</small></span><span class="chev">›</span></button>
+        <button class="path-card" data-nav="family"><span class="icon rose">🤝</span><span><strong>Близким</strong><small>поддержка семьи и дома</small></span><span class="chev">›</span></button>
         <button class="path-card" data-nav="links"><span class="icon">🔗</span><span><strong>Контакты</strong><small>каналы, сайт, видео</small></span><span class="chev">›</span></button>
       </div>
     </section>
@@ -2786,6 +2789,13 @@ function renderSupport() {
       <div class="section-head"><h3>Подсказки для головы</h3></div>
       <div class="list">${supportMessages.map(m => `<div class="list-item"><span class="icon olive">${m.icon}</span><span><strong>${h(m.title)}</strong><div class="meta">${h(m.text)}</div></span></div>`).join("")}</div>
     </section>
+    <section class="section card family-inline-card">
+      <span class="badge rose">для семьи</span>
+      <h3>Если рядом близкий человек</h3>
+      <p>Иногда поддержку нужно давать не только пациенту, но и тем, кто рядом: жене, мужу, детям, родителям. Есть отдельный мягкий раздел — как помочь и не сгореть самому.</p>
+      <button class="primary-btn full-width" data-nav="family">Открыть раздел для близких</button>
+    </section>
+
     <section class="section card pad">
       <h3 style="margin-top:0">Мини-практика 90 секунд</h3>
       <p class="subtitle" style="margin-left:0; line-height:1.55">Вдох на 3 счёта, длинный выдох на 5–6 счётов. Плечи вниз. Челюсть расслабить. 6–8 циклов. Цель — не уснуть, а вернуть телу сигнал: “опасности прямо сейчас нет”.</p>
@@ -2794,6 +2804,107 @@ function renderSupport() {
   `;
 }
 
+
+
+
+function renderFamilySupport() {
+  const vitaliyUrl = projectAuthor.telegram || "https://t.me/newsustav";
+  return `
+    ${backRow("На главную", "home")}
+    ${topScreen("Близким", "как помочь человеку и не сгореть самому")}
+
+    <section class="card hero soft family-hero">
+      <div>
+        <span class="badge rose">для жён, мужей, детей и родных</span>
+        <h2>Вы тоже проходите этот путь рядом</h2>
+        <p>Когда у близкого боль, диагноз, операция или страх инвалидности — нагрузка ложится не только на пациента. Этот раздел помогает не потеряться: что сказать, что подготовить, где не давить и когда подключать помощь.</p>
+        <div class="cta-row">
+          <button class="primary-btn" data-nav="concierge">Подготовить дом</button>
+          <button class="secondary-btn" data-nav="support">Успокоить голову</button>
+        </div>
+      </div>
+      <div class="hero-art" aria-hidden="true"></div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <h3>С чего начать близкому</h3>
+        <span class="badge olive">по шагам</span>
+      </div>
+      <div class="family-steps">
+        ${[
+          ["1", "Сначала признать состояние", "Человек может злиться, пить, закрываться, называть себя инвалидом или отказываться что-то делать. Часто это не “слабость характера”, а реакция на страх и потерю контроля."],
+          ["2", "Вернуть факты вместо паники", "Соберите диагноз, заключения, рекомендации врача, ограничения, дату операции или следующий шаг. Чем меньше тумана — тем меньше хаоса дома."],
+          ["3", "Подготовить быт", "Костыли/ходунки, ванная, туалет, кровать, проходы по квартире, лёд, вода, зарядка телефона, вещи на уровне рук. Быт — это половина спокойствия."],
+          ["4", "Не тащить всё на себе молча", "У близкого тоже есть ресурс. Нужны паузы, помощь родственников, иногда психолог. Спасатель без сна и опоры быстро превращается в второго пациента."]
+        ].map(item => `
+          <article class="card family-step-card">
+            <span class="family-num">${item[0]}</span>
+            <div>
+              <h3>${h(item[1])}</h3>
+              <p>${h(item[2])}</p>
+            </div>
+          </article>
+        `).join("")}
+      </div>
+    </section>
+
+    <section class="section card family-script-card">
+      <span class="badge rose">разговор без давления</span>
+      <h3>Что можно сказать человеку</h3>
+      <div class="speech-box">
+        “Я вижу, что тебе тяжело. Я не буду давить, но давай вместе разберёмся по шагам: врач, дом, опора, первые дни, вопросы и безопасное движение. Ты не один.”
+      </div>
+      <p>Задача близкого — не победить человека аргументами, а вернуть ощущение: рядом есть опора и понятный план.</p>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <h3>Что сделать сегодня</h3>
+        <span class="badge gray">30 минут</span>
+      </div>
+      <div class="path-grid secondary-grid">
+        <button class="path-card" data-nav="questions"><span class="icon olive">?</span><span><strong>Собрать вопросы врачу</strong><small>чтобы не забыть важное</small></span><span class="chev">›</span></button>
+        <button class="path-card" data-nav="concierge"><span class="icon rose">🏠</span><span><strong>Проверить дом</strong><small>ванная, туалет, проходы, опора</small></span><span class="chev">›</span></button>
+        <button class="path-card" data-nav="safety"><span class="icon rose">🚦</span><span><strong>Выучить красные флаги</strong><small>когда не ждать и не терпеть</small></span><span class="chev">›</span></button>
+        <button class="path-card" data-nav="daily"><span class="icon olive">☀</span><span><strong>Собрать режим дня</strong><small>вода, паузы, дыхание, сон</small></span><span class="chev">›</span></button>
+      </div>
+    </section>
+
+    <section class="section card family-psych-card">
+      <div class="family-psych-top">
+        <span class="icon rose">🧠</span>
+        <div>
+          <h3>Психологическая опора</h3>
+          <p>Если дома постоянная паника, апатия, срывы, алкоголь, агрессия или ощущение “я больше не вывожу” — это повод подключить дополнительную поддержку.</p>
+        </div>
+      </div>
+      <div class="notice olive"><strong>Психолог проекта:</strong> место уже заложено. Контакт можно добавить отдельной кнопкой, когда вы решите, как его правильно представить.</div>
+      <a class="secondary-btn as-link full-width" href="${h(vitaliyUrl)}" target="_blank" rel="noopener" data-track-link="family_psychologist_request">Попросить контакт психолога / поддержку</a>
+    </section>
+
+    <section class="section card family-care-card">
+      <h3>Чтобы не сгореть самому</h3>
+      <ul class="checklist mini">
+        <li>Не спорьте с болью и страхом — сначала признайте их.</li>
+        <li>Не берите на себя роль врача: решения по лечению остаются за врачом.</li>
+        <li>Договоритесь, кто помогает с бытом, покупками, документами и поездками.</li>
+        <li>Фиксируйте маленькие улучшения: шаги, сон, настроение, самостоятельность.</li>
+        <li>Если становится опасно или резко хуже — не ждите, обращайтесь за медицинской помощью.</li>
+      </ul>
+    </section>
+
+    <section class="section card action-card family-action-card">
+      <h3>Нужен понятный план для близкого?</h3>
+      <p>Можно начать с бесплатного маршрута в приложении, а если нужен разбор ситуации — написать Виталию и описать, что происходит: этап, диагноз, операция впереди или уже была, что больше всего пугает.</p>
+      <a class="primary-btn as-link full-width" href="${h(vitaliyUrl)}" target="_blank" rel="noopener" data-track-link="family_vitaliy_support">Написать Виталию по ситуации</a>
+    </section>
+
+    <section class="section">
+      <div class="notice"><strong>Важно:</strong> раздел для близких не заменяет врача, психолога или экстренную помощь. Если есть угрозы себе/другим, резкое ухудшение состояния, высокая температура, сильная боль, выраженный отёк или другие красные флаги — обращайтесь к врачу или в экстренные службы.</div>
+    </section>
+  `;
+}
 
 
 function renderWeightLossNutrition() {
@@ -3228,6 +3339,7 @@ function render() {
   if (state.screen === "questions") body = renderDoctorQuestions();
   if (state.screen === "team") body = renderTeam();
   if (state.screen === "support") body = renderSupport();
+  if (state.screen === "family") body = renderFamilySupport();
   if (state.screen === "nutrition") body = renderNutrition();
   if (state.screen === "weight-loss-nutrition") body = renderWeightLossNutrition();
   if (state.screen === "links") body = renderLinks();

@@ -1689,3 +1689,90 @@ body {
   display: grid;
   gap: 9px;
 }
+
+
+/* v2.1 — support for relatives */
+.family-hero {
+  background:
+    radial-gradient(circle at 90% 14%, rgba(154,160,106,.20), transparent 32%),
+    linear-gradient(135deg, rgba(248,226,219,.82), rgba(255,252,247,.96));
+}
+.family-steps {
+  display: grid;
+  gap: 12px;
+}
+.family-step-card {
+  display: grid;
+  grid-template-columns: 44px 1fr;
+  gap: 12px;
+  padding: 16px;
+}
+.family-num {
+  width: 38px;
+  height: 38px;
+  border-radius: 15px;
+  display: grid;
+  place-items: center;
+  background: rgba(185,111,102,.18);
+  color: var(--rose);
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+}
+.family-step-card h3 {
+  margin: 0 0 6px;
+  font-size: 18px;
+  line-height: 1.18;
+}
+.family-step-card p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.48;
+  font-size: 13.5px;
+}
+.family-script-card,
+.family-psych-card,
+.family-care-card,
+.family-action-card,
+.family-inline-card {
+  padding: 18px;
+}
+.family-script-card h3,
+.family-psych-card h3,
+.family-care-card h3,
+.family-action-card h3,
+.family-inline-card h3 {
+  margin: 10px 0 8px;
+  font-size: 22px;
+  line-height: 1.12;
+}
+.speech-box {
+  margin: 12px 0;
+  padding: 16px;
+  border-radius: 20px;
+  background:
+    radial-gradient(circle at 92% 15%, rgba(154,160,106,.12), transparent 34%),
+    rgba(255,252,247,.86);
+  border: 1px solid rgba(185,111,102,.14);
+  color: var(--text);
+  font-size: 16px;
+  line-height: 1.5;
+}
+.family-psych-top {
+  display: grid;
+  grid-template-columns: 48px 1fr;
+  gap: 12px;
+  align-items: start;
+}
+.family-psych-top p,
+.family-action-card p,
+.family-inline-card p,
+.family-script-card p {
+  color: var(--muted);
+  line-height: 1.5;
+  margin: 0 0 12px;
+}
+.family-inline-card {
+  background:
+    radial-gradient(circle at 92% 14%, rgba(248,226,219,.54), transparent 34%),
+    linear-gradient(135deg, rgba(255,252,247,.98), rgba(234,238,216,.45));
+}
