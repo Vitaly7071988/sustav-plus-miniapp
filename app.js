@@ -3,7 +3,7 @@
   Static Telegram Mini App prototype: no backend, no payments, data saved in localStorage.
 */
 
-const APP_VERSION = "2.1-family-support";
+const APP_VERSION = "2.2-combo-carousel";
 const AI_API_URL = "/api/assistant"; // позже подключим Vercel Serverless Function + OpenAI API
 
 const medicalDisclaimer = "Материалы внутри приложения — образовательный маршрут и чек-листы. Они не заменяют врача, хирурга или реабилитолога. Ограничения после операции зависят от доступа, импланта, сопутствующих диагнозов и индивидуальных назначений.";
@@ -946,6 +946,135 @@ const rhythmItems = [
 ];
 
 
+
+const comboPacks = [
+  {
+    id: "home-mini",
+    badge: "старт",
+    title: "Дом готов к операции",
+    subtitle: "мини-разбор быта перед выпиской",
+    price: "3 500 ₽",
+    icon: "🏠",
+    tone: "rose",
+    includes: ["чек-лист квартиры", "что купить / что арендовать", "ванная, туалет, кровать, проходы", "первые бытовые ошибки после операции"],
+    note: "Для тех, кто хочет быстро понять, что подготовить дома без лишних покупок.",
+    contact: "Написать Виталию",
+    url: "https://t.me/newsustav",
+    trackKey: "combo_home_mini"
+  },
+  {
+    id: "nutrition-pdf",
+    badge: "PDF",
+    title: "Питание и восстановление",
+    subtitle: "гайд от Виктории",
+    price: "3 999 ₽",
+    icon: "🥗",
+    tone: "olive",
+    includes: ["белок, вода, стул, энергия", "коллаген как часть рациона", "витамин D/K2, омега-3, магний — что обсудить", "как не худеть через голодовку"],
+    note: "Образовательный PDF, не назначение добавок. Индивидуальный подбор — отдельно.",
+    contact: "Написать Виктории",
+    url: "https://t.me/victoriaklochikhina",
+    trackKey: "combo_victoria_pdf"
+  },
+  {
+    id: "rehab-pdf",
+    badge: "PDF",
+    title: "ЛФК и резинки",
+    subtitle: "гайд от Антона",
+    price: "3 999 ₽",
+    icon: "🏋️",
+    tone: "rose",
+    includes: ["упражнения с резинками", "прогрессия нагрузки", "частые ошибки в технике", "мини-ролики / видео с упражнениями"],
+    note: "Подходит после базового восстановления и с учётом разрешений врача.",
+    contact: "Написать Антону",
+    url: "https://t.me/Vtaly88",
+    trackKey: "combo_anton_pdf"
+  },
+  {
+    id: "analysis-nutrition",
+    badge: "разбор",
+    title: "Анализы + питание",
+    subtitle: "нутрициологический маршрут",
+    price: "20 000 ₽",
+    icon: "🧾",
+    tone: "olive",
+    includes: ["разбор текущего состояния", "питание под восстановление", "вес, белок, энергия, дефициты", "что обсудить с врачом по анализам"],
+    note: "Не медицинская диагностика. Клинические решения остаются за врачом.",
+    contact: "Написать Виктории",
+    url: "https://t.me/victoriaklochikhina",
+    trackKey: "combo_analysis_nutrition"
+  },
+  {
+    id: "route-20",
+    badge: "маршрут",
+    title: "Персональный маршрут",
+    subtitle: "Виталий как навигатор",
+    price: "20 000 ₽",
+    icon: "🧭",
+    tone: "rose",
+    includes: ["разбор этапа и главных страхов", "план ближайших шагов", "дом, вопросы врачу, быт, движение", "куда идти дальше без хаоса"],
+    note: "Для тех, кто не хочет собирать информацию по кускам и хочет понятный путь.",
+    contact: "Написать Виталию",
+    url: "https://t.me/newsustav",
+    trackKey: "combo_vitaliy_route"
+  },
+  {
+    id: "full-support",
+    badge: "команда",
+    title: "Полное сопровождение",
+    subtitle: "Виталий + Виктория + ЛФК",
+    price: "50 000 ₽",
+    icon: "🤝",
+    tone: "olive",
+    includes: ["навигация по восстановлению", "питание и нутритивная поддержка", "ЛФК-направление и прогрессия", "опора для пациента и близких"],
+    note: "Для тех, кому нужен не один PDF, а человеческая система поддержки.",
+    contact: "Обсудить сопровождение",
+    url: "https://t.me/newsustav",
+    trackKey: "combo_full_support"
+  }
+];
+
+function renderComboCarousel(context = "home") {
+  return `
+    <section class="section combo-section" data-combo-context="${h(context)}">
+      <div class="section-head combo-head">
+        <div>
+          <h3>Комбо-наборы</h3>
+          <p>Если не хочется разбираться во всём самому — можно взять готовый набор поддержки.</p>
+        </div>
+        <span class="badge rose">платно</span>
+      </div>
+
+      <div class="combo-strip" role="list" aria-label="Комбо-наборы Сустав+">
+        ${comboPacks.map(pack => `
+          <article class="combo-card ${pack.tone}" role="listitem">
+            <div class="combo-image">
+              <span class="combo-emoji">${h(pack.icon)}</span>
+              <span class="combo-badge">${h(pack.badge)}</span>
+            </div>
+            <div class="combo-body">
+              <div class="combo-price">${h(pack.price)}</div>
+              <h3>${h(pack.title)}</h3>
+              <p class="combo-subtitle">${h(pack.subtitle)}</p>
+              <ul class="combo-list">
+                ${pack.includes.map(item => `<li>${h(item)}</li>`).join("")}
+              </ul>
+              <div class="combo-note">${h(pack.note)}</div>
+              <a class="primary-btn as-link full-width" href="${h(pack.url)}" target="_blank" rel="noopener" data-track-link="${h(pack.trackKey)}">${h(pack.contact)}</a>
+            </div>
+          </article>
+        `).join("")}
+      </div>
+
+      <div class="combo-footer">
+        <span>Бесплатно можно остаться в приложении и проходить маршрут самостоятельно.</span>
+        <button class="ghost-btn" data-nav="route">Продолжить бесплатно</button>
+      </div>
+    </section>
+  `;
+}
+
+
 const premiumGuides = {
   nutrition: {
     title: "PDF-гайд по нутритивной поддержке",
@@ -1845,6 +1974,7 @@ function renderHome() {
         <button class="path-card" data-nav="questions"><span class="icon olive">?</span><span><strong>Вопросы врачу</strong><small>чек-лист консультации</small></span><span class="chev">›</span></button>
         <button class="path-card" data-nav="support"><span class="icon olive">♡</span><span><strong>Спокойствие</strong><small>поддержка и страхи</small></span><span class="chev">›</span></button>
         <button class="path-card" data-nav="family"><span class="icon rose">🤝</span><span><strong>Близким</strong><small>поддержка семьи и дома</small></span><span class="chev">›</span></button>
+        <button class="path-card" data-nav="combos"><span class="icon olive">🧺</span><span><strong>Комбо-наборы</strong><small>готовые платные маршруты</small></span><span class="chev">›</span></button>
         <button class="path-card" data-nav="links"><span class="icon">🔗</span><span><strong>Контакты</strong><small>каналы, сайт, видео</small></span><span class="chev">›</span></button>
       </div>
     </section>
@@ -2807,6 +2937,25 @@ function renderSupport() {
 
 
 
+
+function renderCombosScreen() {
+  return `
+    ${backRow("На главную", "home")}
+    ${topScreen("Комбо-наборы", "готовые платные варианты поддержки")}
+    <section class="card hero soft combo-page-hero">
+      <div>
+        <span class="badge rose">можно бесплатно, можно с поддержкой</span>
+        <h2>Выберите уровень помощи</h2>
+        <p>Сустав+ остаётся бесплатным. А если хочется быстрее, спокойнее и с человеком рядом — ниже готовые наборы: дом, питание, ЛФК, маршрут и сопровождение.</p>
+      </div>
+      <div class="hero-art" aria-hidden="true"></div>
+    </section>
+    ${renderComboCarousel("combos_screen")}
+    <section class="section"><div class="notice"><strong>Важно:</strong> платные наборы не заменяют врача, хирурга, экстренную помощь или очную реабилитацию. Это навигация, образовательные материалы и поддержка в рамках проекта.</div></section>
+  `;
+}
+
+
 function renderFamilySupport() {
   const vitaliyUrl = projectAuthor.telegram || "https://t.me/newsustav";
   return `
@@ -2893,6 +3042,8 @@ function renderFamilySupport() {
         <li>Если становится опасно или резко хуже — не ждите, обращайтесь за медицинской помощью.</li>
       </ul>
     </section>
+
+    ${renderComboCarousel("family")}
 
     <section class="section card action-card family-action-card">
       <h3>Нужен понятный план для близкого?</h3>
@@ -2998,6 +3149,8 @@ function renderNutrition() {
         </div>
       </div>
     </section>
+
+    ${renderComboCarousel("nutrition")}
 
     ${renderPremiumGuideCards("nutrition")}
 
@@ -3340,6 +3493,7 @@ function render() {
   if (state.screen === "team") body = renderTeam();
   if (state.screen === "support") body = renderSupport();
   if (state.screen === "family") body = renderFamilySupport();
+  if (state.screen === "combos") body = renderCombosScreen();
   if (state.screen === "nutrition") body = renderNutrition();
   if (state.screen === "weight-loss-nutrition") body = renderWeightLossNutrition();
   if (state.screen === "links") body = renderLinks();
