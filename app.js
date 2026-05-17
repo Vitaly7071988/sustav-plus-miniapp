@@ -3,7 +3,7 @@
   Static Telegram Mini App prototype: no backend, no payments, data saved in localStorage.
 */
 
-const APP_VERSION = "2.2-combo-carousel";
+const APP_VERSION = "2.3-system-back";
 const AI_API_URL = "/api/assistant"; // позже подключим Vercel Serverless Function + OpenAI API
 
 const medicalDisclaimer = "Материалы внутри приложения — образовательный маршрут и чек-листы. Они не заменяют врача, хирурга или реабилитолога. Ограничения после операции зависят от доступа, импланта, сопутствующих диагнозов и индивидуальных назначений.";
@@ -1483,7 +1483,8 @@ const state = {
   assistantAnswer: "",
   lastSaved: null,
   ref: "direct",
-  trainingIntensity: store.get("sustav_training_intensity", "light")
+  trainingIntensity: store.get("sustav_training_intensity", "light"),
+  navHistory: []
 };
 
 const completed = store.get("sustav_completed", {});
@@ -1820,8 +1821,54 @@ function isRhythmDone(id) { return !!routineProgress[rhythmKey(id)]; }
 function rhythmDoneCount() { return rhythmItems.filter(item => isRhythmDone(item.id)).length; }
 
 
+function snapshotScreen() {
+  return {
+    screen: state.screen,
+    program: state.program,
+    day: state.day,
+    exerciseId: state.exerciseId
+  };
+}
+
+function sameSnapshot(a, b) {
+  return a && b && a.screen === b.screen && a.program === b.program && a.day === b.day && a.exerciseId === b.exerciseId;
+}
+
 function setScreen(screen, opts = {}) {
-  Object.assign(state, opts, { screen });
+  const options = { ...opts };
+  const pushHistory = options.pushHistory !== false;
+  delete options.pushHistory;
+
+  const current = snapshotScreen();
+  const next = {
+    screen,
+    program: options.program ?? state.program,
+    day: options.day ?? state.day,
+    exerciseId: options.exerciseId ?? (screen === "exercise" ? state.exerciseId : null)
+  };
+
+  if (pushHistory && current.screen && !sameSnapshot(current, next)) {
+    state.navHistory = [...(state.navHistory || []), current].slice(-30);
+  }
+
+  Object.assign(state, options, { screen });
+  if (screen !== "exercise" && !options.exerciseId) state.exerciseId = null;
+  window.scrollTo({ top: 0, behavior: "smooth" });
+  render();
+}
+
+function goBack(fallback = "home") {
+  const history = state.navHistory || [];
+  const previous = history.pop();
+  state.navHistory = history;
+
+  if (previous && previous.screen) {
+    Object.assign(state, previous);
+  } else {
+    Object.assign(state, { screen: fallback || "home", exerciseId: null });
+  }
+
+  trackEvent("back_click", { to: state.screen, fallback });
   window.scrollTo({ top: 0, behavior: "smooth" });
   render();
 }
@@ -1849,7 +1896,12 @@ function topScreen(title, subtitle = "") {
   `;
 }
 function backRow(label = "Назад", action = "home") {
-  return `<div class="back-row"><button class="back-btn" data-action="${action}">← ${h(label)}</button></div>`;
+  return `<div class="back-row"><button class="back-btn" data-go-back data-fallback="${h(action)}">← ${h(label)}</button></div>`;
+}
+
+function globalBackRow() {
+  if (state.screen === "home") return "";
+  return `<div class="back-row global-back-row"><button class="back-btn" data-go-back data-fallback="home">← Назад</button></div>`;
 }
 function bottomNav() {
   const items = [
@@ -3505,12 +3557,19 @@ function render() {
   if (state.screen === "longlife") body = renderLongLife();
   if (state.screen === "rhythm") body = renderRhythm();
   if (state.screen === "concierge") body = renderConcierge();
-  app.innerHTML = body + bottomNav();
+  const bodyWithBack = state.screen !== "home" && !body.includes('class="back-row"') ? globalBackRow() + body : body;
+  app.innerHTML = bodyWithBack + bottomNav();
   bindEvents(app);
   trackScreenView();
 }
 
 function bindEvents(root) {
+  root.querySelectorAll("[data-go-back]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      goBack(btn.dataset.fallback || "home");
+    });
+  });
+
   root.querySelectorAll("[data-nav]").forEach(btn => {
     btn.addEventListener("click", () => { trackEvent("nav_click", { from: state.screen, to: btn.dataset.nav, text: btn.textContent.trim().slice(0, 60) }); setScreen(btn.dataset.nav); });
   });

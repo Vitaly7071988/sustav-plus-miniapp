@@ -1776,3 +1776,102 @@ body {
     radial-gradient(circle at 92% 14%, rgba(248,226,219,.54), transparent 34%),
     linear-gradient(135deg, rgba(255,252,247,.98), rgba(234,238,216,.45));
 }
+
+
+/* v2.2 — combo carousel like native marketplace cards */
+.combo-section { margin-top: 18px; }
+.combo-head { align-items: flex-start; }
+.combo-head h3 { margin: 0; font-size: 28px; line-height: 1.05; letter-spacing: -.03em; }
+.combo-head p { margin: 6px 0 0; color: var(--muted); font-size: 13px; line-height: 1.38; }
+.combo-strip {
+  display: flex;
+  gap: 14px;
+  overflow-x: auto;
+  padding: 2px 2px 14px;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+}
+.combo-strip::-webkit-scrollbar { height: 4px; }
+.combo-strip::-webkit-scrollbar-thumb { background: rgba(185,111,102,.25); border-radius: 999px; }
+.combo-card {
+  min-width: 276px;
+  max-width: 276px;
+  border-radius: 28px;
+  background: rgba(255,252,247,.96);
+  border: 1px solid rgba(70,58,48,.08);
+  overflow: hidden;
+  box-shadow: 0 18px 42px rgba(70,58,48,.10);
+  scroll-snap-align: start;
+}
+.combo-card.rose .combo-image {
+  background: radial-gradient(circle at 84% 18%, rgba(255,255,255,.45), transparent 24%), linear-gradient(135deg, rgba(185,111,102,.92), rgba(248,226,219,.96));
+}
+.combo-card.olive .combo-image {
+  background: radial-gradient(circle at 84% 18%, rgba(255,255,255,.45), transparent 24%), linear-gradient(135deg, rgba(154,160,106,.92), rgba(234,238,216,.96));
+}
+.combo-image { height: 118px; position: relative; display: grid; place-items: center; }
+.combo-emoji {
+  width: 70px; height: 70px; border-radius: 26px; display: grid; place-items: center;
+  background: rgba(255,252,247,.82); font-size: 36px; box-shadow: 0 16px 30px rgba(70,58,48,.12);
+}
+.combo-badge {
+  position: absolute; left: 14px; top: 14px; padding: 7px 11px; border-radius: 999px;
+  background: rgba(255,252,247,.86); color: var(--text); font-weight: 900; font-size: 12px;
+  text-transform: uppercase; letter-spacing: .02em;
+}
+.combo-body { padding: 16px; }
+.combo-price {
+  display: inline-flex; align-items: center; padding: 7px 11px; border-radius: 999px;
+  background: rgba(154,160,106,.15); color: var(--olive); font-size: 19px; line-height: 1;
+  font-weight: 950; font-variant-numeric: tabular-nums; margin-bottom: 10px;
+}
+.combo-body h3 { margin: 0; font-size: 22px; line-height: 1.05; letter-spacing: -.03em; }
+.combo-subtitle { margin: 6px 0 12px; color: var(--muted); font-size: 13px; line-height: 1.34; }
+.combo-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 7px; }
+.combo-list li { position: relative; padding-left: 21px; color: var(--text); font-size: 12.7px; line-height: 1.35; }
+.combo-list li::before { content: "✓"; position: absolute; left: 0; top: 0; color: var(--olive); font-weight: 950; }
+.combo-note {
+  margin: 12px 0; padding: 10px; border-radius: 16px; background: rgba(248,226,219,.36);
+  color: var(--muted); font-size: 12px; line-height: 1.38;
+}
+.combo-footer {
+  display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 12px;
+  border-radius: 20px; background: rgba(255,252,247,.72); border: 1px solid rgba(154,160,106,.12);
+}
+.combo-footer span { color: var(--muted); font-size: 12.5px; line-height: 1.35; }
+.combo-footer .ghost-btn { white-space: nowrap; color: var(--olive); }
+.combo-page-hero {
+  background: radial-gradient(circle at 88% 14%, rgba(154,160,106,.20), transparent 32%), linear-gradient(135deg, rgba(248,226,219,.78), rgba(255,252,247,.96));
+}
+@media (max-width: 390px) {
+  .combo-card { min-width: 252px; max-width: 252px; }
+}
+
+
+/* v2.3 — system back button on every inner screen */
+.global-back-row {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  padding-top: max(8px, env(safe-area-inset-top));
+  background: linear-gradient(180deg, rgba(247,241,233,.98), rgba(247,241,233,.86));
+  backdrop-filter: blur(10px);
+}
+.back-row {
+  margin: 0 0 12px;
+}
+.back-btn {
+  min-height: 42px;
+  border: 0;
+  border-radius: 999px;
+  padding: 10px 14px;
+  background: rgba(255,252,247,.86);
+  color: var(--text);
+  font-weight: 850;
+  box-shadow: 0 8px 22px rgba(70,58,48,.08);
+  border: 1px solid rgba(70,58,48,.08);
+  cursor: pointer;
+}
+.back-btn:active {
+  transform: translateY(1px);
+}
