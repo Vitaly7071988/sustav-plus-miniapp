@@ -1,8 +1,8 @@
-/* Сустав+ v2.6 — расширенный проводник: анкета, вопросы с ответами, +10 упражнений */
+/* Сустав+ v2.8 — расширенный проводник + обновленные визуалы упражнений */
 (function () {
   'use strict';
 
-  const VERSION = '2.6-native-guide-expanded';
+  const VERSION = '2.8-visual-exercises';
   const TRACK_API = '/api/track';
   const TRACKER_URL = 'https://docs.google.com/spreadsheets/d/1fCEnLH6RYQptTf2zvlrjX6J5LDGTehjXg6TU6X_6lbU/copy';
   const TELEGRAM_URL = 'https://t.me/newsustav';
