@@ -1875,3 +1875,45 @@ body {
 .back-btn:active {
   transform: translateY(1px);
 }
+
+/* v3.1 — exercise image full-height fix: show portrait 4-step cards without crop */
+.exercise-illustration {
+  min-height: 0 !important;
+  overflow: visible !important;
+  padding: 0 !important;
+  background: rgba(255,255,255,.72) !important;
+}
+
+.exercise-photo {
+  width: 100% !important;
+  height: auto !important;
+  max-height: none !important;
+  aspect-ratio: auto !important;
+  object-fit: contain !important;
+  object-position: center top !important;
+  border-radius: 20px !important;
+}
+
+/* also fix preview cards from newer native-guide blocks */
+.splus25-exercise-card img,
+.splus-v22-card img,
+.exercise-card img,
+.video-card img {
+  height: auto !important;
+  max-height: none !important;
+  object-fit: contain !important;
+  object-position: center top !important;
+}
+
+/* mobile: keep card readable and avoid horizontal crop */
+@media (max-width: 640px) {
+  .exercise-hero {
+    padding: 12px !important;
+  }
+  .exercise-illustration {
+    border-radius: 22px !important;
+  }
+  .exercise-photo {
+    border-radius: 18px !important;
+  }
+}

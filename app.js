@@ -3,7 +3,7 @@
   Static Telegram Mini App prototype: no backend, no payments, data saved in localStorage.
 */
 
-const APP_VERSION = "2.9-full-merge-exercises-bot";
+const APP_VERSION = "3.0-image-cache-fix";
 const AI_API_URL = "/api/assistant"; // позже подключим Vercel Serverless Function + OpenAI API
 
 const medicalDisclaimer = "Материалы внутри приложения — образовательный маршрут и чек-листы. Они не заменяют врача, хирурга или реабилитолога. Ограничения после операции зависят от доступа, импланта, сопутствующих диагнозов и индивидуальных назначений.";
@@ -479,36 +479,6 @@ const exercises = [
       "Одышка или боль в груди"
     ],
     "note": "Спокойное дыхание — тоже часть восстановления. Начинаем без паники."
-  },
-  {
-    "id": "safe-turn-crutches",
-    "title": "Разворот с костылями маленькими шагами",
-    "joint": "ТБС",
-    "duration": "2 минуты",
-    "level": "бытовой навык",
-    "icon": "↩️",
-    "tags": [
-      "костыли",
-      "без разворота на ноге",
-      "дом"
-    ],
-    "steps": [
-      "Остановитесь и встаньте устойчиво.",
-      "Переставьте костыли в сторону разворота.",
-      "Повернитесь маленькими шагами всем телом.",
-      "Не крутитесь на оперированной ноге."
-    ],
-    "mistakes": [
-      "Разворачиваться на одной ноге",
-      "Крутить таз резко",
-      "Спешить в узком месте"
-    ],
-    "stop": [
-      "Боль",
-      "Потеря равновесия",
-      "Страх или неуверенность"
-    ],
-    "note": "Разворот — частая бытовая ошибка. Поворачиваемся маленькими шагами, не винтом."
   },
   {
     "id": "morning-breath",
@@ -2986,7 +2956,7 @@ function renderExerciseDetail() {
     ${backRow("К упражнениям", "exercises")}
     ${topScreen("Упражнения", ex.title)}
     <section class="card exercise-hero">
-      <div class="exercise-illustration"><img class="exercise-photo" src="assets/exercises/${h(ex.id)}.png" alt="${h(ex.title)}" loading="lazy"></div>
+      <div class="exercise-illustration"><img class="exercise-photo" src="assets/exercises/${h(ex.id)}.png?v=31-fullimg" alt="${h(ex.title)}" loading="lazy"></div>
       <div class="exercise-tags">
         <span class="badge rose">⏱ ${h(ex.duration)}</span>
         <span class="badge olive">♡ ${h(ex.tags[0])}</span>
