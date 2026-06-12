@@ -331,3 +331,7 @@ https://your-domain.vercel.app?ref=elkin
 ## v2.5
 
 Исправлена навигация, нижние кнопки и выбор этапа маршрута. Добавлен standalone `v25-native-guide.js`, обновлены изображения упражнений.
+
+## v2.7 Telegram /start fix
+
+Если `/start` в боте молчит, используйте `api/bot.js` и инструкцию `docs/V27_BOT_START_FIX.md`.
